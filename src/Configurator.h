@@ -3,13 +3,18 @@
 
 #include <IotWebConf.h>
 #include <IotWebConfUsing.h>
-
-#define STRING_LEN 128
+#include "Boards.h"
+#include "Board.h"
 
 class Configurator {
  public:
   Configurator();
   ~Configurator();
+
+  void setOnConfiguredCallback(std::function<void()> func);
+  Board getBoard();
+  // FIXME delete?
+  bool isConfigured();
 
   void loop();
 
@@ -17,10 +22,12 @@ class Configurator {
   DNSServer *dnsServer;
   WebServer *webServer;
   IotWebConf *conf;
+  Boards *boards;
 
   IotWebConfParameterGroup *allCustomParameters;
   IotWebConfSelectParameter *boardType;
-  char chipType[STRING_LEN];
+  char boardIndex[STRING_LEN];
+  bool configured;
 };
 
 #endif

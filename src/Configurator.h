@@ -8,7 +8,7 @@
 
 class Configurator {
  public:
-  Configurator();
+  Configurator(WebServer *webServer);
   ~Configurator();
 
   void setOnConfiguredCallback(std::function<void()> func);
@@ -20,7 +20,6 @@ class Configurator {
 
  private:
   DNSServer *dnsServer;
-  WebServer *webServer;
   IotWebConf *conf;
   Boards *boards;
 

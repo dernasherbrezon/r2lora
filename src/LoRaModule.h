@@ -1,3 +1,6 @@
+#ifndef LoRaModule_h
+#define LoRaModule_h
+
 #include "Board.h"
 
 class LoRaModule {
@@ -6,3 +9,5 @@ class LoRaModule {
     private:
         
 };
+
+#endif

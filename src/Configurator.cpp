@@ -3,10 +3,9 @@
 
 static const char *LOG_TAG = "r2lora";
 
-Configurator::Configurator() {
+Configurator::Configurator(WebServer *webServer) {
   this->boards = new Boards();
   this->dnsServer = new DNSServer();
-  this->webServer = new WebServer(80);
   this->conf = new IotWebConf(LOG_TAG, dnsServer, webServer, "", "0.1");
 
   this->boardType = new IotWebConfSelectParameter(
@@ -22,8 +21,8 @@ Configurator::Configurator() {
 
   this->configured = this->conf->init();
 
-  this->webServer->on("/", [this] { this->conf->handleConfig(); });
-  this->webServer->onNotFound([this]() { this->conf->handleNotFound(); });
+  webServer->on("/", [this] { this->conf->handleConfig(); });
+  webServer->onNotFound([this]() { this->conf->handleNotFound(); });
 }
 
 void Configurator::setOnConfiguredCallback(std::function<void()> func) {
@@ -59,10 +58,6 @@ Configurator::~Configurator() {
   if (this->dnsServer != NULL) {
     this->dnsServer->stop();
     free(this->dnsServer);
-  }
-  if (this->webServer != NULL) {
-    this->webServer->stop();
-    free(this->webServer);
   }
   if (this->boards != NULL) {
     free(this->boards);

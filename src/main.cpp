@@ -16,7 +16,7 @@ void setupRadio() {
 
   // FIXME shutdown lora?
   // FIXME reset?
-  lora->setup(conf->getBoard());
+  lora->setup(conf->getBoard(), conf->getChip());
 
   // radio = new SX1278(new Module(1, 1, 1, 1));
   // if( SX1278 *sx = dynamic_cast<SX1278 *>(radio)) {

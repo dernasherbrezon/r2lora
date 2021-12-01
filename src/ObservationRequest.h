@@ -1,3 +1,6 @@
+#ifndef ObservationRequest_h
+#define ObservationRequest_h
+
 #include <stdint.h>
 
 class ObservationRequest {
@@ -11,5 +14,6 @@ class ObservationRequest {
   uint16_t preambleLength;  // = (uint16_t)8U
   uint8_t gain;             // = (uint8_t)0U
   uint8_t ldro;             // 0 - auto, 1 - enable, 2 - disable
-  bool crc;
 };
+
+#endif

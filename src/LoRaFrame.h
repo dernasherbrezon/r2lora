@@ -1,3 +1,6 @@
+#ifndef LoRaFrame_h
+#define LoRaFrame_h
+
 #include <stdint.h>
 #include <stddef.h>
 
@@ -8,3 +11,5 @@ class LoRaFrame {
         float rssi;
         float snr;
 };
+
+#endif

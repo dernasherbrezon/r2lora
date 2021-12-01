@@ -5,6 +5,7 @@ static const char *LOG_TAG = "r2lora";
 
 Configurator::Configurator(WebServer *webServer) {
   this->boards = new Boards();
+  this->chips = new Chips();
   this->dnsServer = new DNSServer();
   this->conf = new IotWebConf(LOG_TAG, dnsServer, webServer, "", "0.1");
 
@@ -12,12 +13,18 @@ Configurator::Configurator(WebServer *webServer) {
       "Board type", "boardType", this->boardIndex, STRING_LEN,
       this->boards->getBoardIndices(), this->boards->getBoardNames(),
       this->boards->getAll().size(), STRING_LEN);
+  this->chipType = new IotWebConfSelectParameter(
+      "Chip type", "chipType", this->chipIndex, STRING_LEN,
+      this->chips->getChipIndices(), this->chips->getChipNames(),
+      this->chips->getAll().size(), STRING_LEN);
 
   this->allCustomParameters =
       new IotWebConfParameterGroup("allCustomParameters", "r2lora");
   allCustomParameters->addItem(this->boardType);
+  allCustomParameters->addItem(this->chipType);
+
   this->conf->addParameterGroup(this->allCustomParameters);
-  //FIXME wifi connected callback
+  // FIXME wifi connected callback
 
   this->configured = this->conf->init();
 
@@ -46,6 +53,9 @@ bool Configurator::isConfigured() { return this->configured; }
 
 Board Configurator::getBoard() {
   return this->boards->getAll()[atoi(this->boardIndex)];
+}
+Chip Configurator::getChip() {
+  return this->chips->getAll()[atoi(this->chipIndex)];
 }
 
 Configurator::~Configurator() {

@@ -4,13 +4,16 @@
 #include "Board.h"
 #include "ObservationRequest.h"
 #include "LoRaFrame.h"
+#include "Chip.h"
 
 class LoRaModule {
     public:
-        void setup(Board board);
+        int setup(Board board, Chip chip);
         int begin(ObservationRequest *req);
         LoRaFrame *loop();
     private:
+        PhysicalLayer *phys;
+        ChipType type;
         
 };
 

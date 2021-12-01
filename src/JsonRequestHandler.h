@@ -1,3 +1,6 @@
+#ifndef JsonRequestHandler_h
+#define JsonRequestHandler_h
+
 #include <WebServer.h>
 
 class JsonRequestHandler: public RequestHandler {
@@ -41,3 +44,5 @@ protected:
     Uri *_uri;
     HTTPMethod _method;
 };
+
+#endif

@@ -5,6 +5,7 @@
 #include <IotWebConfUsing.h>
 #include "Boards.h"
 #include "Board.h"
+#include "Chips.h"
 
 class Configurator {
  public:
@@ -13,6 +14,7 @@ class Configurator {
 
   void setOnConfiguredCallback(std::function<void()> func);
   Board getBoard();
+  Chip getChip();
   // FIXME delete?
   bool isConfigured();
 
@@ -22,10 +24,14 @@ class Configurator {
   DNSServer *dnsServer;
   IotWebConf *conf;
   Boards *boards;
+  Chips *chips;
 
   IotWebConfParameterGroup *allCustomParameters;
   IotWebConfSelectParameter *boardType;
   char boardIndex[STRING_LEN];
+  IotWebConfSelectParameter *chipType;
+  char chipIndex[STRING_LEN];
+
   bool configured;
 };
 

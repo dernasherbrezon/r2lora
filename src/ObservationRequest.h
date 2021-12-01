@@ -3,7 +3,34 @@
 
 #include <stdint.h>
 
+enum LDRO_TYPE {
+  LDRO_AUTO = 0,
+  LDRO_ON = 1,
+  LDRO_OFF = 2
+};
+
 class ObservationRequest {
+ public:
+  ObservationRequest();
+  float getFreq();
+  void setFreq(float freq);
+  float getBw();
+  void setBw(float bw);
+  uint8_t getSf();
+  void setSf(uint8_t sf);
+  uint8_t getCr();
+  void setCr(uint8_t cr);
+  uint8_t getSyncWord();
+  void setSyncWord(uint8_t syncWord);
+  int8_t getPower();
+  void setPower(int8_t power);
+  uint16_t getPreambleLength();
+  void setPreambleLength(uint16_t preambleLength);
+  uint8_t getGain();
+  void setGain(uint8_t gain);
+  uint8_t getLdro();
+  void setLdro(uint8_t ldro);
+
  private:
   float freq;               // = (434.0F)
   float bw;                 // = (125.0F)

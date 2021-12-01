@@ -1,15 +1,27 @@
 #ifndef LoRaFrame_h
 #define LoRaFrame_h
 
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
 
 class LoRaFrame {
-    private:
-        uint8_t *data;
-        size_t data_len;
-        float rssi;
-        float snr;
+ public:
+  LoRaFrame();
+  ~LoRaFrame();
+  uint8_t *getData();
+  void setData(uint8_t *data);
+  size_t getDataLength();
+  void setDataLength(size_t dataLength);
+  float getRssi();
+  void setRssi(float rssi);
+  float getSnr();
+  void setSnr(float snr);
+
+ private:
+  uint8_t *data;
+  size_t dataLength;
+  float rssi;
+  float snr;
 };
 
 #endif

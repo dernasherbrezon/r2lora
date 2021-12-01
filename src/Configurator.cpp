@@ -10,7 +10,7 @@ Configurator::Configurator(WebServer *webServer) {
 
   this->boardType = new IotWebConfSelectParameter(
       "Board type", "boardType", this->boardIndex, STRING_LEN,
-      this->boards->getBoardNames(), this->boards->getBoardIndices(),
+      this->boards->getBoardIndices(), this->boards->getBoardNames(),
       this->boards->getAll().size(), STRING_LEN);
 
   this->allCustomParameters =

@@ -14,7 +14,7 @@ class Boards {
 
  private:
   std::vector<Board> boards;
-  std::vector<const char *> board_names;
-  std::vector<char *> board_indices;
+  char *board_names;
+  char *board_indices;
 };
 #endif

@@ -12,7 +12,7 @@ WebServer *web;
 ObservationHandler *observationHandler;
 
 void setupRadio() {
-  log_i("[r2lora] connected");
+  log_i("connected");
 
   // FIXME shutdown lora?
   // FIXME reset?
@@ -24,14 +24,24 @@ void setupRadio() {
   // }
 }
 
+void handleStatus() {
+  // FIXME return json
+  // status LoraModule status
+}
+
 void setup() {
-  log_i("[r2lora] starting");
+  log_i("starting");
   lora = new LoRaModule();
   web = new WebServer(80);
   conf = new Configurator(web);
   conf->setOnConfiguredCallback([] { setupRadio(); });
 
   observationHandler = new ObservationHandler(web, lora);
+
+  web->on("/status", HTTP_GET, []() { handleStatus(); });
 }
 
-void loop() { conf->loop(); }
+void loop() {
+  conf->loop();
+  observationHandler->loop();
+}

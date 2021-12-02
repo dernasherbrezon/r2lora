@@ -1,7 +1,29 @@
 #include "ObservationRequest.h"
 
+#include <ArduinoJson.h>
+#include <esp32-hal-log.h>
+
 ObservationRequest::ObservationRequest() {
-  // FIXME
+  // do nothing
+}
+
+int ObservationRequest::parseJson(String input) {
+  StaticJsonDocument<256> doc;
+  DeserializationError error = deserializeJson(doc, input);
+  if (error) {
+    log_e("unable to read json: %s", error.c_str());
+    return -1;
+  }
+  this->freq = doc["freq"];
+  this->bw = doc["bw"];
+  this->sf = doc["sf"];
+  this->cr = doc["cr"];
+  this->syncWord = doc["syncWord"];
+  this->power = doc["power"];
+  this->preambleLength = doc["preambleLength"];
+  this->gain = doc["gain"];
+  this->ldro = doc["ldro"];
+  return 0;
 }
 
 float ObservationRequest::getFreq() { return this->freq; }

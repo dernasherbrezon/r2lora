@@ -2,8 +2,6 @@
 
 #include <esp32-hal-log.h>
 
-#include "JsonRequestHandler.h"
-
 ObservationHandler::ObservationHandler(WebServer *web, LoRaModule *lora) {
   this->web = web;
   this->lora = lora;
@@ -20,9 +18,14 @@ void ObservationHandler::handleStart() {
   if (body == NULL) {
     return;
   }
-  log_i("received: %s", body);
-  // FIXME read ObservationRequest from json
-  int code = lora->begin(NULL);
+  ObservationRequest req;
+  int status = req.parseJson(body);
+  if (status != 0) {
+    // FIXME send invalid input error
+    return;
+  }
+  log_i("received request: %f", req.getFreq());
+  int code = lora->begin(&req);
   if (code != 0) {
     // FIXME respond with error
     return;
@@ -39,7 +42,7 @@ void ObservationHandler::handleStop() {
     return;
   }
   this->receiving = false;
-  // FIXME lora->end();
+  lora->end();
   this->handlePull();
 }
 

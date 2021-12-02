@@ -14,8 +14,8 @@ int LoRaModule::setup(Board board, Chip chip) {
   SPISettings spiSettings(2000000, MSBFIRST, SPI_MODE0);
   SPIClass spi(VSPI);
   spi.begin(board.getSck(), board.getMiso(), board.getMosi(), board.getCs());
-  Module *module = new Module(board.getCs(), board.getIrq(), board.getRst(),
-                              spi, spiSettings);
+  this->module = new Module(board.getCs(), board.getIrq(), board.getRst(), spi,
+                            spiSettings);
   if (chip.getType() == ChipType::TYPE_SX1278) {
     this->phys = new SX1278(module);
   } else if (chip.getType() == ChipType::TYPE_SX1273) {
@@ -131,13 +131,14 @@ LoRaFrame *LoRaModule::readFrame() {
   result->setDataLength(this->phys->getPacketLength());
   uint8_t *data = (uint8_t *)malloc(sizeof(uint8_t) * result->getDataLength());
   if (data == NULL) {
+    delete result;
     return NULL;
   }
   result->setData(data);
 
   int16_t status = this->phys->readData(data, result->getDataLength());
   if (status != ERR_NONE) {
-    free(result);
+    delete result;
     log_e("unable to read the frame: %d", status);
     return NULL;
   }
@@ -151,4 +152,23 @@ LoRaFrame *LoRaModule::readFrame() {
     result->setSnr(sx->getSNR());
   }
   return result;
+}
+
+void LoRaModule::end() {
+  if (this->type == ChipType::TYPE_SX1278) {
+    SX1278 *sx = (SX1278 *)this->phys;
+    sx->sleep();
+  } else if (this->type == ChipType::TYPE_SX1273) {
+    SX1273 *sx = (SX1273 *)this->phys;
+    sx->sleep();
+  }
+}
+
+LoRaModule::~LoRaModule() {
+  if (this->phys != NULL) {
+    delete this->phys;
+  }
+  if (this->module != NULL) {
+    delete this->module;
+  }
 }

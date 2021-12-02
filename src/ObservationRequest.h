@@ -1,6 +1,7 @@
 #ifndef ObservationRequest_h
 #define ObservationRequest_h
 
+#include <WString.h>
 #include <stdint.h>
 
 enum LDRO_TYPE {
@@ -12,6 +13,7 @@ enum LDRO_TYPE {
 class ObservationRequest {
  public:
   ObservationRequest();
+  int parseJson(String input);
   float getFreq();
   void setFreq(float freq);
   float getBw();

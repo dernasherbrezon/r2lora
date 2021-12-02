@@ -24,7 +24,7 @@ void setupRadio() {
   }
   lora = new LoRaModule();
   observationHandler = new ObservationHandler(web, lora);
-  lora->setup(conf->getBoard(), conf->getChip());
+  lora->setup(conf->getChip());
 }
 
 void handleStatus() {

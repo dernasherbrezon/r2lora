@@ -4,15 +4,10 @@
 static const char *LOG_TAG = "r2lora";
 
 Configurator::Configurator(WebServer *webServer) {
-  this->boards = new Boards();
   this->chips = new Chips();
   this->dnsServer = new DNSServer();
   this->conf = new IotWebConf(LOG_TAG, dnsServer, webServer, "", "0.1");
 
-  this->boardType = new IotWebConfSelectParameter(
-      "Board type", "boardType", this->boardIndex, STRING_LEN,
-      this->boards->getBoardIndices(), this->boards->getBoardNames(),
-      this->boards->getAll().size(), STRING_LEN);
   this->chipType = new IotWebConfSelectParameter(
       "Chip type", "chipType", this->chipIndex, STRING_LEN,
       this->chips->getChipIndices(), this->chips->getChipNames(),
@@ -20,7 +15,6 @@ Configurator::Configurator(WebServer *webServer) {
 
   this->allCustomParameters =
       new IotWebConfParameterGroup("allCustomParameters", "r2lora");
-  allCustomParameters->addItem(this->boardType);
   allCustomParameters->addItem(this->chipType);
 
   this->conf->addParameterGroup(this->allCustomParameters);
@@ -51,26 +45,17 @@ void Configurator::loop() {
 
 bool Configurator::isConfigured() { return this->configured; }
 
-Board Configurator::getBoard() {
-  return this->boards->getAll()[atoi(this->boardIndex)];
-}
 Chip Configurator::getChip() {
   return this->chips->getAll()[atoi(this->chipIndex)];
 }
 
 Configurator::~Configurator() {
-  if (this->boardType != NULL) {
-    free(this->boardType);
-  }
   if (this->allCustomParameters != NULL) {
     free(this->allCustomParameters);
   }
   if (this->dnsServer != NULL) {
     this->dnsServer->stop();
     free(this->dnsServer);
-  }
-  if (this->boards != NULL) {
-    free(this->boards);
   }
   if (this->conf != NULL) {
     free(this->conf);

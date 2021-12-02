@@ -1,7 +1,7 @@
 #ifndef LoRaModule_h
 #define LoRaModule_h
 
-#include "Board.h"
+#include <RadioLib.h>
 #include "Chip.h"
 #include "LoRaFrame.h"
 #include "ObservationRequest.h"
@@ -9,7 +9,7 @@
 class LoRaModule {
  public:
   ~LoRaModule();
-  int setup(Board board, Chip chip);
+  int setup(Chip chip);
   int begin(ObservationRequest *req);
   LoRaFrame *loop();
   void end();

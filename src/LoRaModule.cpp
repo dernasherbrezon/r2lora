@@ -4,18 +4,37 @@
 #include <esp32-hal-log.h>
 #include <esp32-hal-spi.h>
 
+// defined in platformio.ini
+#ifndef PIN_CS
+#define PIN_CS 0
+#endif
+#ifndef PIN_IRQ
+#define PIN_IRQ 0
+#endif
+#ifndef PIN_RST
+#define PIN_RST 0
+#endif
+#ifndef PIN_SCK
+#define PIN_SCK 0
+#endif
+#ifndef PIN_MISO
+#define PIN_MISO 0
+#endif
+#ifndef PIN_MOSI
+#define PIN_MOSI 0
+#endif
+
 // flag to indicate that a packet was received
 volatile bool receivedFlag = false;
 
 // disable interrupt when it's not needed
 volatile bool enableInterrupt = true;
 
-int LoRaModule::setup(Board board, Chip chip) {
+int LoRaModule::setup(Chip chip) {
   SPISettings spiSettings(2000000, MSBFIRST, SPI_MODE0);
   SPIClass spi(VSPI);
-  spi.begin(board.getSck(), board.getMiso(), board.getMosi(), board.getCs());
-  this->module = new Module(board.getCs(), board.getIrq(), board.getRst(), spi,
-                            spiSettings);
+  spi.begin(PIN_SCK, PIN_MISO, PIN_MOSI, PIN_CS);
+  this->module = new Module(PIN_CS, PIN_IRQ, PIN_RST, spi, spiSettings);
   if (chip.getType() == ChipType::TYPE_SX1278) {
     this->phys = new SX1278(module);
   } else if (chip.getType() == ChipType::TYPE_SX1273) {

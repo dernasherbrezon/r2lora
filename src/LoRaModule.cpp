@@ -116,6 +116,9 @@ int LoRaModule::begin(ObservationRequest *req) {
   }
   genericSx->setDio0Action(setFlag);
   status = genericSx->startReceive();
+  if (status == ERR_NONE) {
+    this->receivingData = true;
+  }
   return status;
 }
 
@@ -189,7 +192,10 @@ void LoRaModule::end() {
   if (status != ERR_NONE) {
     log_e("unable to put module back to sleep: %d", status);
   }
+  this->receivingData = false;
 }
+
+bool LoRaModule::isReceivingData() { return this->receivingData; }
 
 LoRaModule::~LoRaModule() {
   if (this->phys != NULL) {

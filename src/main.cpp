@@ -29,12 +29,20 @@ void setupRadio() {
 
 void handleStatus() {
   StaticJsonDocument<128> json;
-  // FIXME statuses
   // INIT - waiting for AP to initialize
   // CONNECTING - connecting to WiFi
   // RECEIVING - lora is listening for data
   // IDLE - module is waiting for new observation
-  json["status"] = "SUCCESS";
+  if (lora == NULL) {
+    json["status"] = "INIT";
+  } else if (conf->getState() == iotwebconf::NetworkState::Connecting) {
+    json["status"] = "CONNECTING";
+  } else if (lora->isReceivingData()) {
+    json["status"] = "RECEIVING";
+  } else {
+    json["status"] = "IDLE";
+  }
+
   String output;
   serializeJson(json, output);
   web->send(200, "application/json; charset=UTF-8", output);

@@ -14,8 +14,7 @@ class Configurator {
 
   void setOnConfiguredCallback(std::function<void()> func);
   Chip getChip();
-  // FIXME delete?
-  bool isConfigured();
+  iotwebconf::NetworkState getState();
 
   void loop();
 
@@ -27,7 +26,6 @@ class Configurator {
   IotWebConfParameterGroup *allCustomParameters;
   IotWebConfSelectParameter *chipType;
   char chipIndex[STRING_LEN];
-
   bool configured;
 };
 

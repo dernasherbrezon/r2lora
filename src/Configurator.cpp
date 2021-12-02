@@ -18,10 +18,8 @@ Configurator::Configurator(WebServer *webServer) {
   allCustomParameters->addItem(this->chipType);
 
   this->conf->addParameterGroup(this->allCustomParameters);
-  // FIXME wifi connected callback
 
   this->configured = this->conf->init();
-
   webServer->on("/", [this] { this->conf->handleConfig(); });
   webServer->onNotFound([this]() { this->conf->handleNotFound(); });
 }
@@ -43,7 +41,7 @@ void Configurator::loop() {
   this->conf->doLoop();
 }
 
-bool Configurator::isConfigured() { return this->configured; }
+iotwebconf::NetworkState Configurator::getState() { return this->conf->getState(); }
 
 Chip Configurator::getChip() {
   return this->chips->getAll()[atoi(this->chipIndex)];

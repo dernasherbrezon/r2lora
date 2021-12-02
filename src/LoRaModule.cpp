@@ -47,6 +47,7 @@ int LoRaModule::begin(ObservationRequest *req) {
   SX127x *genericSx;
   if (this->type == ChipType::TYPE_SX1278) {
     SX1278 *sx = (SX1278 *)phys;
+    // FIXME should be called once
     status = sx->begin(req->getFreq(), req->getBw(), req->getSf(), req->getCr(),
                        req->getSyncWord(), req->getPower(),
                        req->getPreambleLength(), req->getGain());
@@ -91,6 +92,7 @@ int LoRaModule::begin(ObservationRequest *req) {
     status = ERR_UNKNOWN;
   }
   if (status != ERR_NONE) {
+    log_e("unable to begin LoRa: %d", status);
     return status;
   }
   genericSx->setDio0Action(setFlag);
@@ -117,7 +119,7 @@ LoRaFrame *LoRaModule::loop() {
     status = sx->startReceive();
   }
   if (status != ERR_NONE) {
-    log_e("unable to put module back to receive: %d", status);
+    log_e("unable to put module back to receive mode: %d", status);
   }
 
   // we're ready to receive more packets,
@@ -151,22 +153,29 @@ LoRaFrame *LoRaModule::readFrame() {
     result->setRssi(sx->getRSSI());
     result->setSnr(sx->getSNR());
   }
+  log_i("frame received: %d bytes RSSI: %f SNR: %f", result->getDataLength(),
+        result->getRssi(), result->getSnr());
   return result;
 }
 
 void LoRaModule::end() {
+  int16_t status = ERR_NONE;
   if (this->type == ChipType::TYPE_SX1278) {
     SX1278 *sx = (SX1278 *)this->phys;
-    sx->sleep();
+    status = sx->sleep();
   } else if (this->type == ChipType::TYPE_SX1273) {
     SX1273 *sx = (SX1273 *)this->phys;
-    sx->sleep();
+    status = sx->sleep();
+  }
+  if (status != ERR_NONE) {
+    log_e("unable to put module back to sleep: %d", status);
   }
 }
 
 LoRaModule::~LoRaModule() {
   if (this->phys != NULL) {
-    delete this->phys;
+    // no private destructor for all RadioLib modules
+    free(this->phys);
   }
   if (this->module != NULL) {
     delete this->module;

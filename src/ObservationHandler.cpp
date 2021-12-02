@@ -1,5 +1,6 @@
 #include "ObservationHandler.h"
 
+#include <ArduinoJson.h>
 #include <esp32-hal-log.h>
 
 ObservationHandler::ObservationHandler(WebServer *web, LoRaModule *lora) {
@@ -21,20 +22,34 @@ void ObservationHandler::handleStart() {
   ObservationRequest req;
   int status = req.parseJson(body);
   if (status != 0) {
-    // FIXME send invalid input error
+    this->sendFailure("unable to parse request");
     return;
   }
-  log_i("received request: %f", req.getFreq());
+  log_i("received observation request on: %fMhz", req.getFreq());
   int code = lora->begin(&req);
   if (code != 0) {
-    // FIXME respond with error
+    this->sendFailure("unable to start lora");
     return;
   }
   this->receiving = true;
+  this->sendSuccess();
 }
 
 void ObservationHandler::handlePull() {
-  // FIXME serialize each LoraFrame and free them, clear receivedFrames
+  DynamicJsonDocument json(2048);
+  json["status"] = "SUCCESS";
+  JsonArray frames = json.createNestedArray("frames");
+  for (size_t i = 0; i < this->receivedFrames.size(); i++) {
+    JsonObject obj = frames.createNestedObject();
+    LoRaFrame *curFrame = this->receivedFrames[i];
+    obj["dataLength"] = curFrame->getDataLength();
+    obj["data"] = curFrame->getData();
+    obj["rssi"] = curFrame->getRssi();
+    obj["snr"] = curFrame->getSnr();
+  }
+  String output;
+  serializeJson(json, output);
+  this->web->send(200, "application/json; charset=UTF-8", output);
 }
 
 void ObservationHandler::handleStop() {
@@ -42,6 +57,7 @@ void ObservationHandler::handleStop() {
     return;
   }
   this->receiving = false;
+  log_i("stop observation");
   lora->end();
   this->handlePull();
 }
@@ -55,4 +71,21 @@ void ObservationHandler::loop() {
     return;
   }
   this->receivedFrames.push_back(frame);
+}
+
+void ObservationHandler::sendFailure(const char *message) {
+  StaticJsonDocument<128> json;
+  json["status"] = "FAILURE";
+  json["failureMessage"] = message;
+  String output;
+  serializeJson(json, output);
+  this->web->send(200, "application/json; charset=UTF-8", output);
+}
+
+void ObservationHandler::sendSuccess() {
+  StaticJsonDocument<128> json;
+  json["status"] = "SUCCESS";
+  String output;
+  serializeJson(json, output);
+  this->web->send(200, "application/json; charset=UTF-8", output);
 }

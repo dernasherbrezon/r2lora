@@ -12,6 +12,9 @@ class ObservationHandler {
         void handleStart();
         void handleStop();
         void handlePull();
+
+        void sendFailure(const char *message);
+        void sendSuccess();
         
         WebServer *web;
         LoRaModule *lora;

@@ -12,7 +12,7 @@ int ObservationRequest::parseJson(String input) {
   DeserializationError error = deserializeJson(doc, input);
   if (error) {
     log_e("unable to read json: %s", error.c_str());
-    return -1;
+    return error.code();
   }
   this->freq = doc["freq"];
   this->bw = doc["bw"];

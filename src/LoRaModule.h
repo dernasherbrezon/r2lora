@@ -13,12 +13,14 @@ class LoRaModule {
   int begin(ObservationRequest *req);
   LoRaFrame *loop();
   void end();
+  bool isReceivingData();
 
  private:
   Module *module;
   PhysicalLayer *phys;
   ChipType type;
   LoRaFrame *readFrame();
+  bool receivingData = false;
 };
 
 #endif

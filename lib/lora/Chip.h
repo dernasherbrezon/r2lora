@@ -3,7 +3,7 @@
 
 enum ChipType {
     TYPE_SX1278 = 0,
-    TYPE_SX1273
+    TYPE_SX1276
 };
 
 class Chip {

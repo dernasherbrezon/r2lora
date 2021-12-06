@@ -3,7 +3,7 @@
 
 void test_start_loop_stop(void) {
   LoRaModule module;
-  int code = module.setup(Chip("SX1273 - 868/915Mhz", ChipType::TYPE_SX1273));
+  int code = module.setup(Chip("SX1276 - 868/915Mhz", ChipType::TYPE_SX1276));
   TEST_ASSERT_EQUAL(0, code);
   ObservationRequest req;
   req.setFreq(915.0);
@@ -23,6 +23,14 @@ void test_start_loop_stop(void) {
   module.end();
 }
 
+int main( int argc, char **argv) {
+    UNITY_BEGIN();
+
+    RUN_TEST(test_start_loop_stop);
+
+    UNITY_END();
+}
+
 void setup() {
   // NOTE!!! Wait for >2 secs
   // if board doesn't support software reset via Serial.DTR/RTS
@@ -34,8 +42,5 @@ void setup() {
 }
 
 void loop() {
-  digitalWrite(13, HIGH);
-  delay(100);
-  digitalWrite(13, LOW);
-  delay(500);
+  delay(5000);
 }

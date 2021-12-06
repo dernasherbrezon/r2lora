@@ -9,7 +9,7 @@
 
 Chips::Chips() {
   this->chips.push_back(Chip("SX1278 - 433Mhz", ChipType::TYPE_SX1278));
-  this->chips.push_back(Chip("SX1273 - 868/915Mhz", ChipType::TYPE_SX1273));
+  this->chips.push_back(Chip("SX1276 - 868/915Mhz", ChipType::TYPE_SX1276));
 
   this->chip_names =
       (char *)malloc(sizeof(char) * STRING_LEN * this->chips.size());

@@ -37,8 +37,8 @@ int LoRaModule::setup(Chip chip) {
   this->module = new Module(PIN_CS, PIN_IRQ, PIN_RST, spi, spiSettings);
   if (chip.getType() == ChipType::TYPE_SX1278) {
     this->phys = new SX1278(module);
-  } else if (chip.getType() == ChipType::TYPE_SX1273) {
-    this->phys = new SX1273(module);
+  } else if (chip.getType() == ChipType::TYPE_SX1276) {
+    this->phys = new SX1276(module);
   } else {
     log_e("unknown chip type: %d", chip.getType());
     return -1;
@@ -86,8 +86,8 @@ int LoRaModule::begin(ObservationRequest *req) {
     // always checksum
     sx->setCRC(true);
     genericSx = sx;
-  } else if (this->type == ChipType::TYPE_SX1273) {
-    SX1273 *sx = (SX1273 *)phys;
+  } else if (this->type == ChipType::TYPE_SX1276) {
+    SX1276 *sx = (SX1276 *)phys;
     status = sx->begin(req->getFreq(), req->getBw(), req->getSf(), req->getCr(),
                        req->getSyncWord(), req->getPower(),
                        req->getPreambleLength(), req->getGain());
@@ -136,8 +136,8 @@ LoRaFrame *LoRaModule::loop() {
   if (this->type == ChipType::TYPE_SX1278) {
     SX1278 *sx = (SX1278 *)this->phys;
     status = sx->startReceive();
-  } else if (this->type == ChipType::TYPE_SX1273) {
-    SX1273 *sx = (SX1273 *)this->phys;
+  } else if (this->type == ChipType::TYPE_SX1276) {
+    SX1276 *sx = (SX1276 *)this->phys;
     status = sx->startReceive();
   }
   if (status != ERR_NONE) {
@@ -170,8 +170,8 @@ LoRaFrame *LoRaModule::readFrame() {
     SX1278 *sx = (SX1278 *)this->phys;
     result->setRssi(sx->getRSSI());
     result->setSnr(sx->getSNR());
-  } else if (this->type == ChipType::TYPE_SX1273) {
-    SX1273 *sx = (SX1273 *)this->phys;
+  } else if (this->type == ChipType::TYPE_SX1276) {
+    SX1276 *sx = (SX1276 *)this->phys;
     result->setRssi(sx->getRSSI());
     result->setSnr(sx->getSNR());
   }
@@ -185,8 +185,8 @@ void LoRaModule::end() {
   if (this->type == ChipType::TYPE_SX1278) {
     SX1278 *sx = (SX1278 *)this->phys;
     status = sx->sleep();
-  } else if (this->type == ChipType::TYPE_SX1273) {
-    SX1273 *sx = (SX1273 *)this->phys;
+  } else if (this->type == ChipType::TYPE_SX1276) {
+    SX1276 *sx = (SX1276 *)this->phys;
     status = sx->sleep();
   }
   if (status != ERR_NONE) {
@@ -203,6 +203,6 @@ LoRaModule::~LoRaModule() {
     free(this->phys);
   }
   if (this->module != NULL) {
-    delete this->module;
+    free(this->module);
   }
 }

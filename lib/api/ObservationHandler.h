@@ -2,8 +2,8 @@
 #define ObservationHandler_h
 
 #include <WebServer.h>
-
-#include "LoRaModule.h"
+#include <LoRaModule.h>
+#include <LoRaFrame.h>
 
 class ObservationHandler {
  public:

@@ -2,26 +2,16 @@
 
 #include <RadioLib.h>
 #include <esp32-hal-log.h>
-#include <esp32-hal-spi.h>
 
 // defined in platformio.ini
 #ifndef PIN_CS
 #define PIN_CS 0
 #endif
-#ifndef PIN_IRQ
-#define PIN_IRQ 0
+#ifndef PIN_DI0
+#define PIN_DI0 0
 #endif
 #ifndef PIN_RST
 #define PIN_RST 0
-#endif
-#ifndef PIN_SCK
-#define PIN_SCK 0
-#endif
-#ifndef PIN_MISO
-#define PIN_MISO 0
-#endif
-#ifndef PIN_MOSI
-#define PIN_MOSI 0
 #endif
 
 // flag to indicate that a packet was received
@@ -31,10 +21,8 @@ volatile bool receivedFlag = false;
 volatile bool enableInterrupt = true;
 
 int LoRaModule::setup(Chip chip) {
-  SPISettings spiSettings(2000000, MSBFIRST, SPI_MODE0);
-  SPIClass spi(VSPI);
-  spi.begin(PIN_SCK, PIN_MISO, PIN_MOSI, PIN_CS);
-  this->module = new Module(PIN_CS, PIN_IRQ, PIN_RST, spi, spiSettings);
+  log_i("init module");
+  this->module = new Module(PIN_CS, PIN_DI0, PIN_RST);
   if (chip.getType() == ChipType::TYPE_SX1278) {
     this->phys = new SX1278(module);
   } else if (chip.getType() == ChipType::TYPE_SX1276) {
@@ -66,7 +54,6 @@ int LoRaModule::begin(ObservationRequest *req) {
   SX127x *genericSx;
   if (this->type == ChipType::TYPE_SX1278) {
     SX1278 *sx = (SX1278 *)phys;
-    // FIXME should be called once
     status = sx->begin(req->getFreq(), req->getBw(), req->getSf(), req->getCr(),
                        req->getSyncWord(), req->getPower(),
                        req->getPreambleLength(), req->getGain());

@@ -23,14 +23,6 @@ void test_start_loop_stop(void) {
   module.end();
 }
 
-int main( int argc, char **argv) {
-    UNITY_BEGIN();
-
-    RUN_TEST(test_start_loop_stop);
-
-    UNITY_END();
-}
-
 void setup() {
   // NOTE!!! Wait for >2 secs
   // if board doesn't support software reset via Serial.DTR/RTS

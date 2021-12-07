@@ -7,8 +7,9 @@ Configurator::Configurator(WebServer *webServer) {
   this->chips = new Chips();
   this->dnsServer = new DNSServer();
   this->conf = new IotWebConf(LOG_TAG, dnsServer, webServer, "", "0.1");
-  this->conf->getThingNameParameter()->label = "Access point name";
-  this->conf->getApPasswordParameter()->label = "Access point password";
+  this->conf->getThingNameParameter()->label =
+      "Device name (Access point name, API username)";
+  this->conf->getApPasswordParameter()->label = "Device password";
 
   this->chipType = new IotWebConfSelectParameter(
       "Chip type", "chipType", this->chipIndex, STRING_LEN,
@@ -18,8 +19,6 @@ Configurator::Configurator(WebServer *webServer) {
   this->allCustomParameters =
       new IotWebConfParameterGroup("allCustomParameters", LOG_TAG);
   allCustomParameters->addItem(this->chipType);
-  allCustomParameters->addItem(&this->apiUsernameParameter);
-  allCustomParameters->addItem(&this->apiPasswordParameter);
   allCustomParameters->addItem(&this->ntpServerParameter);
   this->conf->addParameterGroup(this->allCustomParameters);
 
@@ -54,8 +53,10 @@ iotwebconf::NetworkState Configurator::getState() {
   return this->conf->getState();
 }
 
-const char *Configurator::getUsername() { return this->apiUsername; }
-const char *Configurator::getPassword() { return this->apiPassword; }
+const char *Configurator::getUsername() { return this->conf->getThingName(); }
+const char *Configurator::getPassword() {
+  return this->conf->getApPasswordParameter()->valueBuffer;
+}
 const char *Configurator::getNtpServer() { return this->ntpServer; }
 
 Chip Configurator::getChip() {
@@ -63,20 +64,8 @@ Chip Configurator::getChip() {
 }
 
 bool Configurator::formValidator(iotwebconf::WebRequestWrapper *web) {
-  int length = web->arg(this->apiUsernameParameter.getId()).length();
+  int length = web->arg(this->ntpServerParameter.getId()).length();
   bool valid = true;
-  if (3 > length) {
-    this->apiUsernameParameter.errorMessage =
-        "Should be at least 3 characters.";
-    valid = false;
-  }
-  length = web->arg(this->apiPasswordParameter.getId()).length();
-  if ((0 < length) && (length < 8)) {
-    this->apiPasswordParameter.errorMessage =
-        "Password length must be at least 8 characters.";
-    valid = false;
-  }
-  length = web->arg(this->ntpServerParameter.getId()).length();
   if (3 > length) {
     this->ntpServerParameter.errorMessage = "Should be at least 3 characters.";
     valid = false;

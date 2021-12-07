@@ -6,6 +6,7 @@
 #include "Configurator.h"
 #include "LoRaModule.h"
 #include "ObservationHandler.h"
+#include "time.h"
 
 Configurator *conf;
 LoRaModule *lora;
@@ -23,11 +24,18 @@ void setupRadio() {
     delete lora;
   }
   lora = new LoRaModule();
-  observationHandler = new ObservationHandler(web, lora);
+  observationHandler = new ObservationHandler(web, lora, conf->getUsername(),
+                                              conf->getPassword());
+  configTime(0, 0, conf->getNtpServer());
   lora->setup(conf->getChip());
 }
 
 void handleStatus() {
+  if (!web->authenticate(conf->getUsername(), conf->getPassword())) {
+    web->requestAuthentication();
+    return;
+  }
+  // FIXME add temperature?
   StaticJsonDocument<128> json;
   // INIT - waiting for AP to initialize
   // CONNECTING - connecting to WiFi
@@ -55,7 +63,8 @@ void setup() {
   conf->setOnConfiguredCallback([] { setupRadio(); });
 
   lora = new LoRaModule();
-  observationHandler = new ObservationHandler(web, lora);
+  observationHandler = new ObservationHandler(web, lora, conf->getUsername(),
+                                              conf->getPassword());
 
   web->on("/status", HTTP_GET, []() { handleStatus(); });
 }

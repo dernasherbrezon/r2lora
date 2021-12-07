@@ -16,12 +16,18 @@ class LoRaFrame {
   void setRssi(float rssi);
   float getSnr();
   void setSnr(float snr);
+  float getFrequencyError();
+  void setFrequencyError(float error);
+  long getTimestamp();
+  void setTimestamp(long timestamp);
 
  private:
   uint8_t *data = NULL;
   size_t dataLength = 0;
   float rssi = 0.0F;
   float snr = 0.0F;
+  float frequencyError = 0.0F;
+  long timestamp = 0L;
 };
 
 #endif

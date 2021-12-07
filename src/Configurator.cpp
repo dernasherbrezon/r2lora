@@ -7,6 +7,8 @@ Configurator::Configurator(WebServer *webServer) {
   this->chips = new Chips();
   this->dnsServer = new DNSServer();
   this->conf = new IotWebConf(LOG_TAG, dnsServer, webServer, "", "0.1");
+  this->conf->getThingNameParameter()->label = "Access point name";
+  this->conf->getApPasswordParameter()->label = "Access point password";
 
   this->chipType = new IotWebConfSelectParameter(
       "Chip type", "chipType", this->chipIndex, STRING_LEN,
@@ -14,8 +16,11 @@ Configurator::Configurator(WebServer *webServer) {
       this->chips->getAll().size(), STRING_LEN);
 
   this->allCustomParameters =
-      new IotWebConfParameterGroup("allCustomParameters", "r2lora");
+      new IotWebConfParameterGroup("allCustomParameters", LOG_TAG);
   allCustomParameters->addItem(this->chipType);
+  allCustomParameters->addItem(&this->apiUsernameParameter);
+  allCustomParameters->addItem(&this->apiPasswordParameter);
+  allCustomParameters->addItem(&this->ntpServerParameter);
 
   this->conf->addParameterGroup(this->allCustomParameters);
 
@@ -41,7 +46,13 @@ void Configurator::loop() {
   this->conf->doLoop();
 }
 
-iotwebconf::NetworkState Configurator::getState() { return this->conf->getState(); }
+iotwebconf::NetworkState Configurator::getState() {
+  return this->conf->getState();
+}
+
+const char *Configurator::getUsername() { return this->apiUsername; }
+const char *Configurator::getPassword() { return this->apiPassword; }
+const char *Configurator::getNtpServer() { return this->ntpServer; }
 
 Chip Configurator::getChip() {
   return this->chips->getAll()[atoi(this->chipIndex)];

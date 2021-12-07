@@ -2,6 +2,7 @@
 
 #include <RadioLib.h>
 #include <esp32-hal-log.h>
+#include <time.h>
 
 // defined in platformio.ini
 #ifndef PIN_CS
@@ -142,7 +143,7 @@ LoRaFrame *LoRaModule::readFrame() {
   result->setDataLength(this->phys->getPacketLength());
   uint8_t *data = (uint8_t *)malloc(sizeof(uint8_t) * result->getDataLength());
   if (data == NULL) {
-    delete result;
+    free(result);
     return NULL;
   }
   result->setData(data);
@@ -153,14 +154,19 @@ LoRaFrame *LoRaModule::readFrame() {
     log_e("unable to read the frame: %d", status);
     return NULL;
   }
+  time_t now;
+  time(&now);
+  result->setTimestamp(now);
   if (this->type == ChipType::TYPE_SX1278) {
     SX1278 *sx = (SX1278 *)this->phys;
     result->setRssi(sx->getRSSI());
     result->setSnr(sx->getSNR());
+    result->setFrequencyError(sx->getFrequencyError());
   } else if (this->type == ChipType::TYPE_SX1276) {
     SX1276 *sx = (SX1276 *)this->phys;
     result->setRssi(sx->getRSSI());
     result->setSnr(sx->getSNR());
+    result->setFrequencyError(sx->getFrequencyError());
   }
   log_i("frame received: %d bytes RSSI: %f SNR: %f", result->getDataLength(),
         result->getRssi(), result->getSnr());

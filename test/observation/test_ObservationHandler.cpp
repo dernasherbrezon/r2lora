@@ -5,7 +5,7 @@ void test_init_loop(void) {
   LoRaModule mock;
   WebServer web(80);
 
-  ObservationHandler handler(&web, &mock);
+  ObservationHandler handler(&web, &mock, NULL, NULL);
   handler.loop();
 }
 

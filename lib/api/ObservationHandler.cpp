@@ -3,9 +3,13 @@
 #include <ArduinoJson.h>
 #include <esp32-hal-log.h>
 
-ObservationHandler::ObservationHandler(WebServer *web, LoRaModule *lora) {
+ObservationHandler::ObservationHandler(WebServer *web, LoRaModule *lora,
+                                       const char *apiUsername,
+                                       const char *apiPassword) {
   this->web = web;
   this->lora = lora;
+  this->apiUsername = apiUsername;
+  this->apiPassword = apiPassword;
   this->web->on("/observation/start", HTTP_POST,
                 [this]() { this->handleStart(); });
   this->web->on("/observation/stop", HTTP_POST,
@@ -15,8 +19,13 @@ ObservationHandler::ObservationHandler(WebServer *web, LoRaModule *lora) {
 }
 
 void ObservationHandler::handleStart() {
+  if (!web->authenticate(apiUsername, apiPassword)) {
+    web->requestAuthentication();
+    return;
+  }
   String body = this->web->arg("plain");
   if (body == NULL) {
+    this->sendFailure("unable to parse request");
     return;
   }
   ObservationRequest req;
@@ -36,6 +45,10 @@ void ObservationHandler::handleStart() {
 }
 
 void ObservationHandler::handlePull() {
+  if (!web->authenticate(apiUsername, apiPassword)) {
+    web->requestAuthentication();
+    return;
+  }
   DynamicJsonDocument json(2048);
   json["status"] = "SUCCESS";
   JsonArray frames = json.createNestedArray("frames");
@@ -46,6 +59,8 @@ void ObservationHandler::handlePull() {
     obj["data"] = curFrame->getData();
     obj["rssi"] = curFrame->getRssi();
     obj["snr"] = curFrame->getSnr();
+    obj["frequencyError"] = curFrame->getFrequencyError();
+    obj["timestamp"] = curFrame->getTimestamp();
   }
   String output;
   serializeJson(json, output);
@@ -53,7 +68,12 @@ void ObservationHandler::handlePull() {
 }
 
 void ObservationHandler::handleStop() {
+  if (!web->authenticate(apiUsername, apiPassword)) {
+    web->requestAuthentication();
+    return;
+  }
   if (!this->receiving) {
+    this->sendSuccess();
     return;
   }
   this->receiving = false;

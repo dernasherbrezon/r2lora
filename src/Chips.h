@@ -2,6 +2,7 @@
 #define Chips_h
 
 #include <vector>
+#include <cstddef>
 
 #include "Chip.h"
 

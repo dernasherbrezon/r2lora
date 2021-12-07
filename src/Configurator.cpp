@@ -7,8 +7,7 @@ Configurator::Configurator(WebServer *webServer) {
   this->chips = new Chips();
   this->dnsServer = new DNSServer();
   this->conf = new IotWebConf(LOG_TAG, dnsServer, webServer, "", "0.1");
-  this->conf->getThingNameParameter()->label =
-      "Device name (Access point name, API username)";
+  this->conf->getThingNameParameter()->label = "Device name";
   this->conf->getApPasswordParameter()->label = "Device password";
 
   this->chipType = new IotWebConfSelectParameter(
@@ -53,7 +52,7 @@ iotwebconf::NetworkState Configurator::getState() {
   return this->conf->getState();
 }
 
-const char *Configurator::getUsername() { return this->conf->getThingName(); }
+const char *Configurator::getUsername() { return IOTWEBCONF_ADMIN_USER_NAME; }
 const char *Configurator::getPassword() {
   return this->conf->getApPasswordParameter()->valueBuffer;
 }

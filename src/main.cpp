@@ -27,6 +27,7 @@ void setupRadio() {
   observationHandler = new ObservationHandler(web, lora, conf->getUsername(),
                                               conf->getPassword());
   configTime(0, 0, conf->getNtpServer());
+  log_i("NTP initialized: %s", conf->getNtpServer());
   lora->setup(conf->getChip());
 }
 

@@ -21,8 +21,12 @@ Configurator::Configurator(WebServer *webServer) {
   allCustomParameters->addItem(&this->apiUsernameParameter);
   allCustomParameters->addItem(&this->apiPasswordParameter);
   allCustomParameters->addItem(&this->ntpServerParameter);
-
   this->conf->addParameterGroup(this->allCustomParameters);
+
+  // c++ magic. bind class-based method to function
+  std::function<boolean(iotwebconf::WebRequestWrapper *)> func =
+      std::bind(&Configurator::formValidator, this, std::placeholders::_1);
+  this->conf->setFormValidator(func);
 
   this->configured = this->conf->init();
   webServer->on("/", [this] { this->conf->handleConfig(); });
@@ -56,6 +60,28 @@ const char *Configurator::getNtpServer() { return this->ntpServer; }
 
 Chip Configurator::getChip() {
   return this->chips->getAll()[atoi(this->chipIndex)];
+}
+
+bool Configurator::formValidator(iotwebconf::WebRequestWrapper *web) {
+  int length = web->arg(this->apiUsernameParameter.getId()).length();
+  bool valid = true;
+  if (3 > length) {
+    this->apiUsernameParameter.errorMessage =
+        "Should be at least 3 characters.";
+    valid = false;
+  }
+  length = web->arg(this->apiPasswordParameter.getId()).length();
+  if ((0 < length) && (length < 8)) {
+    this->apiPasswordParameter.errorMessage =
+        "Password length must be at least 8 characters.";
+    valid = false;
+  }
+  length = web->arg(this->ntpServerParameter.getId()).length();
+  if (3 > length) {
+    this->ntpServerParameter.errorMessage = "Should be at least 3 characters.";
+    valid = false;
+  }
+  return valid;
 }
 
 Configurator::~Configurator() {

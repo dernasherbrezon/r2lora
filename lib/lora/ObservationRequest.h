@@ -4,11 +4,7 @@
 #include <WString.h>
 #include <stdint.h>
 
-enum LDRO_TYPE {
-  LDRO_AUTO = 0,
-  LDRO_ON = 1,
-  LDRO_OFF = 2
-};
+enum LDRO_TYPE { LDRO_AUTO = 0, LDRO_ON = 1, LDRO_OFF = 2 };
 
 class ObservationRequest {
  public:
@@ -34,15 +30,15 @@ class ObservationRequest {
   void setLdro(uint8_t ldro);
 
  private:
-  float freq;               // = (434.0F)
-  float bw;                 // = (125.0F)
-  uint8_t sf;               // = (uint8_t)9U
-  uint8_t cr;               // = (uint8_t)7U
-  uint8_t syncWord;         // = (uint8_t)18U
-  int8_t power;             // = (int8_t)10
-  uint16_t preambleLength;  // = (uint16_t)8U
-  uint8_t gain;             // = (uint8_t)0U
-  uint8_t ldro;             // 0 - auto, 1 - enable, 2 - disable
+  float freq = 0.0F;            // = (434.0F)
+  float bw = 0.0F;              // = (125.0F)
+  uint8_t sf = 0;               // = (uint8_t)9U
+  uint8_t cr = 0;               // = (uint8_t)7U
+  uint8_t syncWord = 0;         // = (uint8_t)18U
+  int8_t power = 0;             // = (int8_t)10
+  uint16_t preambleLength = 0;  // = (uint16_t)8U
+  uint8_t gain = 0;             // = (uint8_t)0U
+  uint8_t ldro = 0;             // 0 - auto, 1 - enable, 2 - disable
 };
 
 #endif

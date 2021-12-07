@@ -14,8 +14,8 @@ class Chips {
 
  private:
   std::vector<Chip> chips;
-  char *chip_names;
-  char *chip_indices;
+  char *chip_names = NULL;
+  char *chip_indices = NULL;
 };
 
 #endif

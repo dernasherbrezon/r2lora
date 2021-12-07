@@ -2,6 +2,7 @@
 #define LoRaModule_h
 
 #include <RadioLib.h>
+
 #include "Chip.h"
 #include "LoRaFrame.h"
 #include "ObservationRequest.h"
@@ -16,11 +17,12 @@ class LoRaModule {
   bool isReceivingData();
 
  private:
-  Module *module;
-  PhysicalLayer *phys;
-  ChipType type;
-  LoRaFrame *readFrame();
+  Module *module = NULL;
+  PhysicalLayer *phys = NULL;
+  ChipType type = ChipType::TYPE_SX1278;  // some default chip type
   bool receivingData = false;
+
+  LoRaFrame *readFrame();
 };
 
 #endif

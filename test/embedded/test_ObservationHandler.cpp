@@ -1,17 +1,3 @@
-#define LoRaModule_h
-#include <Chip.h>
-#include <ObservationRequest.h>
-
-class LoRaModule {
- public:
-  ~LoRaModule() {}
-  int setup(Chip chip) { return 0; }
-  int begin(ObservationRequest *req) { return 0; }
-  LoRaFrame *loop() { return NULL; }
-  void end() {}
-  bool isReceivingData() { return false; }
-};
-
 #include <ObservationHandler.h>
 #include <unity.h>
 

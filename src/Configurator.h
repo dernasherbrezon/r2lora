@@ -5,6 +5,7 @@
 
 #include <IotWebConf.h>
 #include <IotWebConfUsing.h>
+
 #include "Chips.h"
 
 class Configurator {
@@ -19,14 +20,14 @@ class Configurator {
   void loop();
 
  private:
-  DNSServer *dnsServer;
-  IotWebConf *conf;
-  Chips *chips;
+  DNSServer *dnsServer = NULL;
+  IotWebConf *conf = NULL;
+  Chips *chips = NULL;
 
-  IotWebConfParameterGroup *allCustomParameters;
-  IotWebConfSelectParameter *chipType;
+  IotWebConfParameterGroup *allCustomParameters = NULL;
+  IotWebConfSelectParameter *chipType = NULL;
   char chipIndex[STRING_LEN];
-  bool configured;
+  bool configured = false;
 };
 
 #endif

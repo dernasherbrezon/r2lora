@@ -18,9 +18,9 @@ class ObservationHandler {
   void sendFailure(const char *message);
   void sendSuccess();
 
-  WebServer *web;
-  LoRaModule *lora;
-  bool receiving;
+  WebServer *web = NULL;
+  LoRaModule *lora = NULL;
+  bool receiving = false;
   std::vector<LoRaFrame *> receivedFrames;
 };
 

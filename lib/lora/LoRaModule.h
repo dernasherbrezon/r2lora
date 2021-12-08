@@ -2,6 +2,7 @@
 #define LoRaModule_h
 
 #include <RadioLib.h>
+#include <stdint.h>
 
 #include "Chip.h"
 #include "LoRaFrame.h"
@@ -15,6 +16,7 @@ class LoRaModule {
   LoRaFrame *loop();
   void end();
   bool isReceivingData();
+  int getTempRaw(int8_t *value);
 
  private:
   Module *module = NULL;

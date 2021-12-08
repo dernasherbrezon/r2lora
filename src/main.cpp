@@ -50,6 +50,10 @@ void handleStatus() {
     json["status"] = "RECEIVING";
   } else {
     json["status"] = "IDLE";
+    int8_t sxTemperature;
+    if (lora->getTempRaw(&sxTemperature) == 0) {
+      json["loraTemperature"] = sxTemperature;
+    }
   }
 
   String output;

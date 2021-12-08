@@ -157,16 +157,25 @@ LoRaFrame *LoRaModule::readFrame() {
   time_t now;
   time(&now);
   result->setTimestamp(now);
+  /**
+    do not correct frequency error
+    doppler correction should be more sophisticated, i.e.
+     - take frequency error upon reception,
+     - take time of the reception and calculate expected doppler frequency error
+     - the difference between expected error and actual error is the "real
+  error" RadioLib however doesn't expose a function for explicit frequency
+  correction
+  **/
   if (this->type == ChipType::TYPE_SX1278) {
     SX1278 *sx = (SX1278 *)this->phys;
     result->setRssi(sx->getRSSI());
     result->setSnr(sx->getSNR());
-    result->setFrequencyError(sx->getFrequencyError());
+    result->setFrequencyError(sx->getFrequencyError(false));
   } else if (this->type == ChipType::TYPE_SX1276) {
     SX1276 *sx = (SX1276 *)this->phys;
     result->setRssi(sx->getRSSI());
     result->setSnr(sx->getSNR());
-    result->setFrequencyError(sx->getFrequencyError());
+    result->setFrequencyError(sx->getFrequencyError(false));
   }
   log_i("frame received: %d bytes RSSI: %f SNR: %f", result->getDataLength(),
         result->getRssi(), result->getSnr());
@@ -189,6 +198,19 @@ void LoRaModule::end() {
 }
 
 bool LoRaModule::isReceivingData() { return this->receivingData; }
+
+int LoRaModule::getTempRaw(int8_t *value) {
+  if (this->type == ChipType::TYPE_SX1278) {
+    SX1278 *sx = (SX1278 *)this->phys;
+    *value = sx->getTempRaw();
+    return 0;
+  } else if (this->type == ChipType::TYPE_SX1276) {
+    SX1276 *sx = (SX1276 *)this->phys;
+    *value = sx->getTempRaw();
+    return 0;
+  }
+  return -1;
+}
 
 LoRaModule::~LoRaModule() {
   if (this->phys != NULL) {

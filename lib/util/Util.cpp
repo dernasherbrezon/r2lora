@@ -21,21 +21,21 @@ int convertStringToHex(const char *str, uint8_t **output, size_t *output_len) {
   }
   size_t bytes = len / 2;
   uint8_t *result = (uint8_t *)malloc(sizeof(uint8_t) * bytes);
+  uint8_t curByte = 0;
   for (size_t i = 0, j = 0; i < str_len; i++) {
-    uint8_t curByte = 0;
     char curChar = str[i];
     if (curChar == ' ') {
       continue;
     }
     curByte *= 16;
     if (curChar > '0' && curChar < '9') {
-      curByte = curChar - '0';
+      curByte += curChar - '0';
     } else if (curChar >= 'A' && curChar <= 'F') {
-      curByte = (curChar - 'A') + 10;
+      curByte += (curChar - 'A') + 10;
     } else if (curChar >= 'a' && curChar <= 'f') {
-      curByte = (curChar - 'a') + 10;
+      curByte += (curChar - 'a') + 10;
     } else {
-      log_i("invalid char: %s", curChar);
+      log_i("invalid char: %c", curChar);
       *output = NULL;
       *output_len = 0;
       return -1;

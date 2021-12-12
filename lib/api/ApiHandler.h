@@ -1,20 +1,21 @@
-#ifndef ObservationHandler_h
-#define ObservationHandler_h
+#ifndef ApiHandler_h
+#define ApiHandler_h
 
 #include <LoRaFrame.h>
 #include <LoRaModule.h>
 #include <WebServer.h>
 
-class ObservationHandler {
+class ApiHandler {
  public:
-  ObservationHandler(WebServer *web, LoRaModule *lora, const char *apiUsername,
-                     const char *apiPassword);
+  ApiHandler(WebServer *web, LoRaModule *lora, const char *apiUsername,
+             const char *apiPassword);
   void loop();
 
  private:
   void handleStart();
   void handleStop();
   void handlePull();
+  void handleTx();
 
   void sendFailure(const char *message);
   void sendSuccess();

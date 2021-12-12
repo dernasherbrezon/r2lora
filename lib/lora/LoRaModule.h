@@ -17,6 +17,7 @@ class LoRaModule {
   void end();
   bool isReceivingData();
   int getTempRaw(int8_t *value);
+  int tx(uint8_t *data, size_t dataLength, int8_t power);
 
  private:
   Module *module = NULL;

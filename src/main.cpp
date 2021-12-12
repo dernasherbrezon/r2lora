@@ -3,29 +3,29 @@
 #include <WiFiServer.h>
 #include <esp32-hal-log.h>
 
+#include "ApiHandler.h"
 #include "Configurator.h"
 #include "LoRaModule.h"
-#include "ObservationHandler.h"
 #include "time.h"
 
 Configurator *conf;
 LoRaModule *lora;
 WebServer *web;
-ObservationHandler *observationHandler;
+ApiHandler *apiHandler;
 
 void setupRadio() {
   log_i("r2lora configured. initializing LoRa module and API");
-  if (observationHandler != NULL) {
+  if (apiHandler != NULL) {
     log_i("reset API configuration");
-    delete observationHandler;
+    delete apiHandler;
   }
   if (lora != NULL) {
     log_i("reset LoRa configuration");
     delete lora;
   }
   lora = new LoRaModule();
-  observationHandler = new ObservationHandler(web, lora, conf->getUsername(),
-                                              conf->getPassword());
+  apiHandler =
+      new ApiHandler(web, lora, conf->getUsername(), conf->getPassword());
   configTime(0, 0, conf->getNtpServer());
   log_i("NTP initialized: %s", conf->getNtpServer());
   lora->setup(conf->getChip());
@@ -36,7 +36,6 @@ void handleStatus() {
     web->requestAuthentication();
     return;
   }
-  // FIXME add temperature?
   StaticJsonDocument<128> json;
   // INIT - waiting for AP to initialize
   // CONNECTING - connecting to WiFi
@@ -68,13 +67,13 @@ void setup() {
   conf->setOnConfiguredCallback([] { setupRadio(); });
 
   lora = new LoRaModule();
-  observationHandler = new ObservationHandler(web, lora, conf->getUsername(),
-                                              conf->getPassword());
+  apiHandler =
+      new ApiHandler(web, lora, conf->getUsername(), conf->getPassword());
 
   web->on("/status", HTTP_GET, []() { handleStatus(); });
 }
 
 void loop() {
   conf->loop();
-  observationHandler->loop();
+  apiHandler->loop();
 }

@@ -3,6 +3,9 @@
 #include <ArduinoJson.h>
 #include <esp32-hal-log.h>
 
+//FIXME rename to RxRequest
+//FIXME move to api
+//FIXME remove dependency in LoRaModule
 ObservationRequest::ObservationRequest() {
   // do nothing
 }

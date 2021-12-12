@@ -20,6 +20,7 @@ class ObservationRequest {
   void setCr(uint8_t cr);
   uint8_t getSyncWord();
   void setSyncWord(uint8_t syncWord);
+  //FIXME move power to tx flow
   int8_t getPower();
   void setPower(int8_t power);
   uint16_t getPreambleLength();

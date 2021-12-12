@@ -1,11 +1,11 @@
-#include <ObservationHandler.h>
+#include <ApiHandler.h>
 #include <unity.h>
 
 void test_init_loop(void) {
   LoRaModule mock;
   WebServer web(80);
 
-  ObservationHandler handler(&web, &mock, NULL, NULL);
+  ApiHandler handler(&web, &mock, NULL, NULL);
   handler.loop();
 }
 

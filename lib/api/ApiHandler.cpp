@@ -1,24 +1,21 @@
-#include "ObservationHandler.h"
+#include "ApiHandler.h"
 
 #include <ArduinoJson.h>
 #include <esp32-hal-log.h>
 
-ObservationHandler::ObservationHandler(WebServer *web, LoRaModule *lora,
-                                       const char *apiUsername,
-                                       const char *apiPassword) {
+ApiHandler::ApiHandler(WebServer *web, LoRaModule *lora,
+                       const char *apiUsername, const char *apiPassword) {
   this->web = web;
   this->lora = lora;
   this->apiUsername = apiUsername;
   this->apiPassword = apiPassword;
-  this->web->on("/observation/start", HTTP_POST,
-                [this]() { this->handleStart(); });
-  this->web->on("/observation/stop", HTTP_POST,
-                [this]() { this->handleStop(); });
-  this->web->on("/observation/pull", HTTP_GET,
-                [this]() { this->handlePull(); });
+  this->web->on("/rx/start", HTTP_POST, [this]() { this->handleStart(); });
+  this->web->on("/rx/stop", HTTP_POST, [this]() { this->handleStop(); });
+  this->web->on("/rx/pull", HTTP_GET, [this]() { this->handlePull(); });
+  this->web->on("/tx/send", HTTP_POST, [this]() { this->handleTx(); });
 }
 
-void ObservationHandler::handleStart() {
+void ApiHandler::handleStart() {
   if (!web->authenticate(apiUsername, apiPassword)) {
     web->requestAuthentication();
     return;
@@ -44,7 +41,34 @@ void ObservationHandler::handleStart() {
   this->sendSuccess();
 }
 
-void ObservationHandler::handlePull() {
+void ApiHandler::handleTx() {
+  if (!web->authenticate(apiUsername, apiPassword)) {
+    web->requestAuthentication();
+    return;
+  }
+  if (lora->isReceivingData()) {
+    this->sendFailure("cannot transmit during receive");
+    return;
+  }
+  String body = this->web->arg("plain");
+  if (body == NULL) {
+    this->sendFailure("unable to parse tx request");
+    return;
+  }
+  StaticJsonDocument<1024> doc;
+  DeserializationError error = deserializeJson(doc, body);
+  if (error) {
+    log_e("unable to read json: %s", error.c_str());
+    this->sendFailure("unable to parse tx request");
+    return;
+  }
+  String data = doc["data"];
+  int8_t power = doc["power"];
+  // FIXME convert hexadecimal string to byte array
+  lora->tx(NULL, 0, power);
+}
+
+void ApiHandler::handlePull() {
   if (!web->authenticate(apiUsername, apiPassword)) {
     web->requestAuthentication();
     return;
@@ -67,7 +91,7 @@ void ObservationHandler::handlePull() {
   this->web->send(200, "application/json; charset=UTF-8", output);
 }
 
-void ObservationHandler::handleStop() {
+void ApiHandler::handleStop() {
   if (!web->authenticate(apiUsername, apiPassword)) {
     web->requestAuthentication();
     return;
@@ -82,7 +106,7 @@ void ObservationHandler::handleStop() {
   this->handlePull();
 }
 
-void ObservationHandler::loop() {
+void ApiHandler::loop() {
   if (!this->receiving) {
     return;
   }
@@ -93,7 +117,7 @@ void ObservationHandler::loop() {
   this->receivedFrames.push_back(frame);
 }
 
-void ObservationHandler::sendFailure(const char *message) {
+void ApiHandler::sendFailure(const char *message) {
   StaticJsonDocument<128> json;
   json["status"] = "FAILURE";
   json["failureMessage"] = message;
@@ -102,7 +126,7 @@ void ObservationHandler::sendFailure(const char *message) {
   this->web->send(200, "application/json; charset=UTF-8", output);
 }
 
-void ObservationHandler::sendSuccess() {
+void ApiHandler::sendSuccess() {
   StaticJsonDocument<128> json;
   json["status"] = "SUCCESS";
   String output;

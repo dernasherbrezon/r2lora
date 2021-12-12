@@ -212,6 +212,25 @@ int LoRaModule::getTempRaw(int8_t *value) {
   return -1;
 }
 
+int LoRaModule::tx(uint8_t *data, size_t dataLength, int8_t power) {
+  if (this->type == ChipType::TYPE_SX1278) {
+    SX1278 *sx = (SX1278 *)this->phys;
+    int code = sx->setOutputPower(power);
+    if (code != ERR_NONE) {
+      return code;
+    }
+    return sx->transmit(data, dataLength);
+  } else if (this->type == ChipType::TYPE_SX1276) {
+    SX1276 *sx = (SX1276 *)this->phys;
+    int code = sx->setOutputPower(power);
+    if (code != ERR_NONE) {
+      return code;
+    }
+    return sx->transmit(data, dataLength);
+  }
+  return -1;
+}
+
 LoRaModule::~LoRaModule() {
   if (this->phys != NULL) {
     // no private destructor for all RadioLib modules

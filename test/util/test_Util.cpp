@@ -1,4 +1,5 @@
 #include <Util.h>
+#include <stdlib.h>
 #include <unity.h>
 
 uint8_t *output = NULL;
@@ -29,6 +30,11 @@ void test_invalid_length(void) { assertInvalidInput("caf "); }
 void process() {
   UNITY_BEGIN();
   RUN_TEST(test_success);
+  RUN_TEST(test_spaces);
+  RUN_TEST(test_multiple_spaces);
+  RUN_TEST(test_case);
+  RUN_TEST(test_invalid_chars);
+  RUN_TEST(test_invalid_length);
   UNITY_END();
 }
 

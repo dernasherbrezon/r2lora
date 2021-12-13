@@ -27,6 +27,16 @@ void test_case(void) { assertInput("cA Fe"); }
 void test_invalid_chars(void) { assertInvalidInput("caxe"); }
 void test_invalid_length(void) { assertInvalidInput("caf "); }
 
+void test_byte_to_string(void) {
+  uint8_t input[] = {0xca, 0xfe};
+  size_t input_len = sizeof(input) / sizeof(uint8_t);
+  char *output = NULL;
+  int code = convertHexToString(input, input_len, &output);
+  TEST_ASSERT_EQUAL_INT(0, code);
+  TEST_ASSERT_EQUAL_INT(4, strlen(output));
+  TEST_ASSERT_EQUAL_STRING("CAFE", output);
+}
+
 void process() {
   UNITY_BEGIN();
   RUN_TEST(test_success);

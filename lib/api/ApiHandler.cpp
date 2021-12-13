@@ -1,6 +1,7 @@
 #include "ApiHandler.h"
 
 #include <ArduinoJson.h>
+#include <Util.h>
 #include <esp32-hal-log.h>
 
 ApiHandler::ApiHandler(WebServer *web, LoRaModule *lora,
@@ -62,10 +63,22 @@ void ApiHandler::handleTx() {
     this->sendFailure("unable to parse tx request");
     return;
   }
-  String data = doc["data"];
+  const char *data = doc["data"];
   int8_t power = doc["power"];
-  // FIXME convert hexadecimal string to byte array
-  lora->tx(NULL, 0, power);
+  uint8_t *output = NULL;
+  size_t output_len = 0;
+  int code = convertStringToHex(data, &output, &output_len);
+  if (code != 0) {
+    this->sendFailure("invalid hexadecimal string in the data field");
+    return;
+  }
+  code = lora->tx(output, output_len, power);
+  free(output);
+  if (code != 0) {
+    this->sendFailure("unable to transmit");
+    return;
+  }
+  this->sendSuccess();
 }
 
 void ApiHandler::handlePull() {
@@ -79,8 +92,16 @@ void ApiHandler::handlePull() {
   for (size_t i = 0; i < this->receivedFrames.size(); i++) {
     JsonObject obj = frames.createNestedObject();
     LoRaFrame *curFrame = this->receivedFrames[i];
-    obj["dataLength"] = curFrame->getDataLength();
-    obj["data"] = curFrame->getData();
+    char *data = NULL;
+    int code = convertHexToString(curFrame->getData(),
+                                  curFrame->getDataLength(), &data);
+    if (code != 0) {
+      this->sendFailure("unable to serialize data");
+      return;
+    }
+    obj["data"] = data;
+    // FIXME verify that data was copied in the call above
+    free(data);
     obj["rssi"] = curFrame->getRssi();
     obj["snr"] = curFrame->getSnr();
     obj["frequencyError"] = curFrame->getFrequencyError();
@@ -118,7 +139,7 @@ void ApiHandler::loop() {
 }
 
 void ApiHandler::sendFailure(const char *message) {
-  StaticJsonDocument<128> json;
+  StaticJsonDocument<512> json;
   json["status"] = "FAILURE";
   json["failureMessage"] = message;
   String output;
@@ -129,6 +150,7 @@ void ApiHandler::sendFailure(const char *message) {
 void ApiHandler::sendSuccess() {
   StaticJsonDocument<128> json;
   json["status"] = "SUCCESS";
+  // FIXME serialize directly to WiFiClient
   String output;
   serializeJson(json, output);
   this->web->send(200, "application/json; charset=UTF-8", output);

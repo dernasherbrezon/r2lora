@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+const char SYMBOLS[] = "0123456789ABCDEF";
+
 int convertStringToHex(const char *str, uint8_t **output, size_t *output_len) {
   size_t len = 0;
   size_t str_len = strlen(str);
@@ -48,5 +50,17 @@ int convertStringToHex(const char *str, uint8_t **output, size_t *output_len) {
   }
   *output = result;
   *output_len = bytes;
+  return 0;
+}
+
+int convertHexToString(const uint8_t *input, size_t input_len, char **output) {
+  char *result = (char *)malloc(sizeof(char) * (input_len * 2 + 1));
+  for (size_t i = 0; i < input_len; i++) {
+    uint8_t cur = input[i];
+    result[2 * i] = SYMBOLS[cur >> 4];
+    result[2 * i + 1] = SYMBOLS[cur & 0x0F];
+  }
+  result[input_len * 2] = '\0';
+  *output = result;
   return 0;
 }

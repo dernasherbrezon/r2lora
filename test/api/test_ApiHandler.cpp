@@ -6,6 +6,8 @@ void test_init_loop(void) {
   WebServer web(80);
 
   ApiHandler handler(&web, &mock, NULL, NULL);
+  String output;
+  int code = handler.handleStart("", &output);
   handler.loop();
 }
 

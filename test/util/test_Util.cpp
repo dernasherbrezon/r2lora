@@ -46,6 +46,7 @@ void process() {
   RUN_TEST(test_case);
   RUN_TEST(test_invalid_chars);
   RUN_TEST(test_invalid_length);
+  RUN_TEST(test_byte_to_string);
   UNITY_END();
 }
 

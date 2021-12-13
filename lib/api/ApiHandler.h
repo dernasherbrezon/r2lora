@@ -11,20 +11,20 @@ class ApiHandler {
              const char *apiPassword);
   void loop();
 
- private:
-  void handleStart();
-  void handleStop();
-  void handlePull();
-  void handleTx();
+  // for tests mostly
+  int handleStart(String body, String *output);
+  int handleStop(String body, String *output);
+  int handlePull(String body, String *output);
+  int handleTx(String body, String *output);
 
-  void sendFailure(const char *message);
-  void sendSuccess();
+ private:
+
+  void sendFailure(const char *message, String *output);
+  void sendSuccess(String *output);
 
   WebServer *web = NULL;
   LoRaModule *lora = NULL;
   bool receiving = false;
-  const char *apiUsername = NULL;
-  const char *apiPassword = NULL;
   std::vector<LoRaFrame *> receivedFrames;
 };
 

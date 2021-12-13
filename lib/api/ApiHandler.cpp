@@ -4,88 +4,96 @@
 #include <Util.h>
 #include <esp32-hal-log.h>
 
+#include "JsonHandler.h"
+
 ApiHandler::ApiHandler(WebServer *web, LoRaModule *lora,
                        const char *apiUsername, const char *apiPassword) {
   this->web = web;
   this->lora = lora;
-  this->apiUsername = apiUsername;
-  this->apiPassword = apiPassword;
-  this->web->on("/rx/start", HTTP_POST, [this]() { this->handleStart(); });
-  this->web->on("/rx/stop", HTTP_POST, [this]() { this->handleStop(); });
-  this->web->on("/rx/pull", HTTP_GET, [this]() { this->handlePull(); });
-  this->web->on("/tx/send", HTTP_POST, [this]() { this->handleTx(); });
+
+  std::function<int(String, String *)> startFunc =
+      std::bind(&ApiHandler::handleStart, this, std::placeholders::_1,
+                std::placeholders::_2);
+  this->web->addHandler(new JsonHandler(startFunc, "/rx/start", HTTP_POST,
+                                        apiUsername, apiPassword));
+
+  std::function<int(String, String *)> stopFunc =
+      std::bind(&ApiHandler::handleStop, this, std::placeholders::_1,
+                std::placeholders::_2);
+  this->web->addHandler(new JsonHandler(stopFunc, "/rx/stop", HTTP_POST,
+                                        apiUsername, apiPassword));
+
+  std::function<int(String, String *)> pullFunc =
+      std::bind(&ApiHandler::handlePull, this, std::placeholders::_1,
+                std::placeholders::_2);
+  this->web->addHandler(new JsonHandler(pullFunc, "/rx/pull", HTTP_GET,
+                                        apiUsername, apiPassword));
+
+  std::function<int(String, String *)> txFunc =
+      std::bind(&ApiHandler::handleTx, this, std::placeholders::_1,
+                std::placeholders::_2);
+  this->web->addHandler(
+      new JsonHandler(txFunc, "/tx/send", HTTP_POST, apiUsername, apiPassword));
 }
 
-void ApiHandler::handleStart() {
-  if (!web->authenticate(apiUsername, apiPassword)) {
-    web->requestAuthentication();
-    return;
-  }
-  String body = this->web->arg("plain");
+int ApiHandler::handleStart(String body, String *output) {
   if (body == NULL) {
-    this->sendFailure("unable to parse request");
-    return;
+    this->sendFailure("unable to parse request", output);
+    return 200;
   }
   ObservationRequest req;
   int status = req.parseJson(body);
   if (status != 0) {
-    this->sendFailure("unable to parse request");
-    return;
+    this->sendFailure("unable to parse request", output);
+    return 200;
   }
   log_i("received observation request on: %fMhz", req.getFreq());
   int code = lora->begin(&req);
   if (code != 0) {
-    this->sendFailure("unable to start lora");
-    return;
+    this->sendFailure("unable to start lora", output);
+    return 200;
   }
   this->receiving = true;
-  this->sendSuccess();
+  this->sendSuccess(output);
+  return 200;
 }
 
-void ApiHandler::handleTx() {
-  if (!web->authenticate(apiUsername, apiPassword)) {
-    web->requestAuthentication();
-    return;
+int ApiHandler::handleTx(String body, String *output) {
+  if (body == NULL) {
+    this->sendFailure("unable to parse tx request", output);
+    return 200;
   }
   if (lora->isReceivingData()) {
-    this->sendFailure("cannot transmit during receive");
-    return;
-  }
-  String body = this->web->arg("plain");
-  if (body == NULL) {
-    this->sendFailure("unable to parse tx request");
-    return;
+    this->sendFailure("cannot transmit during receive", output);
+    return 200;
   }
   StaticJsonDocument<1024> doc;
   DeserializationError error = deserializeJson(doc, body);
   if (error) {
     log_e("unable to read json: %s", error.c_str());
-    this->sendFailure("unable to parse tx request");
-    return;
+    this->sendFailure("unable to parse tx request", output);
+    return 200;
   }
   const char *data = doc["data"];
   int8_t power = doc["power"];
-  uint8_t *output = NULL;
-  size_t output_len = 0;
-  int code = convertStringToHex(data, &output, &output_len);
+  uint8_t *binaryData = NULL;
+  size_t binaryDataLength = 0;
+  int code = convertStringToHex(data, &binaryData, &binaryDataLength);
   if (code != 0) {
-    this->sendFailure("invalid hexadecimal string in the data field");
-    return;
+    this->sendFailure("invalid hexadecimal string in the data field", output);
+    return 200;
   }
-  code = lora->tx(output, output_len, power);
+  code = lora->tx(binaryData, binaryDataLength, power);
   free(output);
   if (code != 0) {
-    this->sendFailure("unable to transmit");
-    return;
+    this->sendFailure("unable to transmit", output);
+    return 200;
   }
-  this->sendSuccess();
+  this->sendSuccess(output);
+  return 0;
 }
 
-void ApiHandler::handlePull() {
-  if (!web->authenticate(apiUsername, apiPassword)) {
-    web->requestAuthentication();
-    return;
-  }
+int ApiHandler::handlePull(String body, String *output) {
   DynamicJsonDocument json(2048);
   json["status"] = "SUCCESS";
   JsonArray frames = json.createNestedArray("frames");
@@ -96,8 +104,8 @@ void ApiHandler::handlePull() {
     int code = convertHexToString(curFrame->getData(),
                                   curFrame->getDataLength(), &data);
     if (code != 0) {
-      this->sendFailure("unable to serialize data");
-      return;
+      this->sendFailure("unable to serialize data", output);
+      return 200;
     }
     obj["data"] = data;
     // FIXME verify that data was copied in the call above
@@ -107,24 +115,19 @@ void ApiHandler::handlePull() {
     obj["frequencyError"] = curFrame->getFrequencyError();
     obj["timestamp"] = curFrame->getTimestamp();
   }
-  String output;
-  serializeJson(json, output);
-  this->web->send(200, "application/json; charset=UTF-8", output);
+  serializeJson(json, *output);
+  return 200;
 }
 
-void ApiHandler::handleStop() {
-  if (!web->authenticate(apiUsername, apiPassword)) {
-    web->requestAuthentication();
-    return;
-  }
+int ApiHandler::handleStop(String body, String *output) {
   if (!this->receiving) {
-    this->sendSuccess();
-    return;
+    this->sendSuccess(output);
+    return 200;
   }
   this->receiving = false;
   log_i("stop observation");
   lora->end();
-  this->handlePull();
+  return this->handlePull(body, output);
 }
 
 void ApiHandler::loop() {
@@ -138,20 +141,15 @@ void ApiHandler::loop() {
   this->receivedFrames.push_back(frame);
 }
 
-void ApiHandler::sendFailure(const char *message) {
+void ApiHandler::sendFailure(const char *message, String *output) {
   StaticJsonDocument<512> json;
   json["status"] = "FAILURE";
   json["failureMessage"] = message;
-  String output;
-  serializeJson(json, output);
-  this->web->send(200, "application/json; charset=UTF-8", output);
+  serializeJson(json, *output);
 }
 
-void ApiHandler::sendSuccess() {
+void ApiHandler::sendSuccess(String *output) {
   StaticJsonDocument<128> json;
   json["status"] = "SUCCESS";
-  // FIXME serialize directly to WiFiClient
-  String output;
-  serializeJson(json, output);
-  this->web->send(200, "application/json; charset=UTF-8", output);
+  serializeJson(json, *output);
 }

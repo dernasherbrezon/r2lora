@@ -1,9 +1,11 @@
 #include <Util.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unity.h>
 
 uint8_t *output = NULL;
 size_t output_len = 0;
+char *char_output = NULL;
 
 void assertInput(const char *input) {
   int code = convertStringToHex(input, &output, &output_len);
@@ -30,11 +32,10 @@ void test_invalid_length(void) { assertInvalidInput("caf "); }
 void test_byte_to_string(void) {
   uint8_t input[] = {0xca, 0xfe};
   size_t input_len = sizeof(input) / sizeof(uint8_t);
-  char *output = NULL;
-  int code = convertHexToString(input, input_len, &output);
+  int code = convertHexToString(input, input_len, &char_output);
   TEST_ASSERT_EQUAL_INT(0, code);
-  TEST_ASSERT_EQUAL_INT(4, strlen(output));
-  TEST_ASSERT_EQUAL_STRING("CAFE", output);
+  TEST_ASSERT_EQUAL_INT(4, strlen(char_output));
+  TEST_ASSERT_EQUAL_STRING("CAFE", char_output);
 }
 
 void process() {
@@ -52,6 +53,10 @@ void tearDown(void) {
   if (output != NULL) {
     free(output);
     output = NULL;
+  }
+  if (char_output != NULL) {
+    free(char_output);
+    char_output = NULL;
   }
   output_len = 0;
 }

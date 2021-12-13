@@ -1,14 +1,28 @@
 #include <ApiHandler.h>
 #include <unity.h>
+#include "MockLoRaModule.h"
 
-void test_init_loop(void) {
-  LoRaModule mock;
+String VALID_RX_REQUEST = String("{\n")
+	+ "	\"freq\": 433.0,\n"
+	+ "	\"bw\": 10.4,\n"
+	+ "	\"sf\": 9,\n"
+	+ "	\"cr\": 6,\n"
+	+ "	\"syncWord\": 18,\n"
+	+ "	\"power\": 10,\n"
+	+ "	\"preambleLength\": 55,\n"
+	+ "	\"gain\": 0,\n"
+	+ "	\"ldro\": 0\n"
+	+ "}\n";
+
+void test_success_start(void) {
+  MockLoRaModule mock;
   WebServer web(80);
 
   ApiHandler handler(&web, &mock, NULL, NULL);
+  mock.beginCode = 0;
   String output;
-  int code = handler.handleStart("", &output);
-  handler.loop();
+  int code = handler.handleStart(VALID_RX_REQUEST, &output);
+  TEST_ASSERT_EQUAL_INT(200, code);
 }
 
 void setup() {
@@ -17,7 +31,7 @@ void setup() {
   delay(2000);
 
   UNITY_BEGIN();
-  RUN_TEST(test_init_loop);
+  RUN_TEST(test_success_start);
   UNITY_END();
 }
 

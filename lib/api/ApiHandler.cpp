@@ -44,7 +44,6 @@ int ApiHandler::handleStart(String body, String *output) {
   StaticJsonDocument<256> doc;
   DeserializationError error = deserializeJson(doc, body);
   if (error) {
-    log_e("unable to read json: %s", error.c_str());
     this->sendFailure("unable to parse request", output);
     return 200;
   }
@@ -80,7 +79,6 @@ int ApiHandler::handleTx(String body, String *output) {
   StaticJsonDocument<1024> doc;
   DeserializationError error = deserializeJson(doc, body);
   if (error) {
-    log_e("unable to read json: %s", error.c_str());
     this->sendFailure("unable to parse tx request", output);
     return 200;
   }
@@ -93,6 +91,7 @@ int ApiHandler::handleTx(String body, String *output) {
     this->sendFailure("invalid hexadecimal string in the data field", output);
     return 200;
   }
+  log_i("tx data: %s", data);
   code = lora->tx(binaryData, binaryDataLength, power);
   free(binaryData);
   if (code != 0) {
@@ -100,7 +99,7 @@ int ApiHandler::handleTx(String body, String *output) {
     return 200;
   }
   this->sendSuccess(output);
-  return 0;
+  return 200;
 }
 
 int ApiHandler::handlePull(String body, String *output) {
@@ -127,6 +126,10 @@ int ApiHandler::handlePull(String body, String *output) {
     frames.add(obj);
   }
   serializeJson(json, *output);
+  for (size_t i = 0; i < this->receivedFrames.size(); i++) {
+    delete this->receivedFrames[i];
+  }
+  this->receivedFrames.clear();
   return 200;
 }
 
@@ -157,6 +160,7 @@ void ApiHandler::sendFailure(const char *message, String *output) {
   json["status"] = "FAILURE";
   json["failureMessage"] = message;
   serializeJson(json, *output);
+  log_i("failure: %s", message);
 }
 
 void ApiHandler::sendSuccess(String *output) {

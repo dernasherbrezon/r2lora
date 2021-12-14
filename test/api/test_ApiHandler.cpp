@@ -21,17 +21,24 @@ String INVALID_TX_REQUEST = "{\"data\":\"CAFE\" \"power\":10}";
 String INVALID_TX_DATA_REQUEST = "{\"data\":\"CAXE\",\"power\":10}";
 
 uint8_t data[] = {0xca, 0xfe};
-LoRaFrame frame;
 
 void setUp(void) {
-  frame.setData(data);
-  frame.setDataLength(sizeof(data) / sizeof(uint8_t));
-  frame.setFrequencyError(13.2);
-  frame.setRssi(-11.22);
-  frame.setSnr(3.2);
-  frame.setTimestamp(1605980902);
+  mock.beginCode = 0;
+  mock.receiving = false;
+  mock.txCode = 0;
   mock.expectedFrames.clear();
-  mock.expectedFrames.push_back(&frame);
+}
+
+void setupFrame() {
+  // should be deleted in the handlePull
+  LoRaFrame *frame = new LoRaFrame();
+  frame->setData(data);
+  frame->setDataLength(sizeof(data) / sizeof(uint8_t));
+  frame->setFrequencyError(13.2);
+  frame->setRssi(-11.22);
+  frame->setSnr(3.2);
+  frame->setTimestamp(1605980902);
+  mock.expectedFrames.push_back(frame);
 }
 
 void assertStatus(String *actual, const char *status) {
@@ -83,6 +90,7 @@ void test_success_stop_even_if_not_running(void) {
 }
 
 void test_pull(void) {
+  setupFrame();
   ApiHandler handler(&web, &mock, NULL, NULL);
   String output;
   handler.handleStart(VALID_RX_REQUEST, &output);
@@ -91,7 +99,7 @@ void test_pull(void) {
   handler.loop();
   int code = handler.handlePull("", &output);
   TEST_ASSERT_EQUAL_INT(200, code);
-  StaticJsonDocument<128> json;
+  DynamicJsonDocument json(2048);
   DeserializationError error = deserializeJson(json, output);
   TEST_ASSERT_NULL(error);
   TEST_ASSERT_EQUAL_STRING("SUCCESS", json["status"]);
@@ -106,6 +114,7 @@ void test_pull(void) {
 }
 
 void test_frames_after_stop(void) {
+  setupFrame();
   ApiHandler handler(&web, &mock, NULL, NULL);
   String output;
   handler.handleStart(VALID_RX_REQUEST, &output);
@@ -114,7 +123,7 @@ void test_frames_after_stop(void) {
   handler.loop();
   int code = handler.handleStop("", &output);
   TEST_ASSERT_EQUAL_INT(200, code);
-  StaticJsonDocument<128> json;
+  DynamicJsonDocument json(2048);
   DeserializationError error = deserializeJson(json, output);
   TEST_ASSERT_NULL(error);
   TEST_ASSERT_EQUAL_STRING("SUCCESS", json["status"]);

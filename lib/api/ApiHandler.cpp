@@ -37,10 +37,6 @@ ApiHandler::ApiHandler(WebServer *web, LoRaModule *lora,
 }
 
 int ApiHandler::handleStart(String body, String *output) {
-  if (body == NULL) {
-    this->sendFailure("unable to parse request", output);
-    return 200;
-  }
   StaticJsonDocument<256> doc;
   DeserializationError error = deserializeJson(doc, body);
   if (error) {
@@ -69,10 +65,6 @@ int ApiHandler::handleStart(String body, String *output) {
 }
 
 int ApiHandler::handleTx(String body, String *output) {
-  if (body == NULL) {
-    this->sendFailure("unable to parse tx request", output);
-    return 200;
-  }
   if (lora->isReceivingData()) {
     this->sendFailure("cannot transmit during receive", output);
     return 200;

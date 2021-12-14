@@ -5,6 +5,7 @@
 
 #include "ApiHandler.h"
 #include "Configurator.h"
+#include "Display.h"
 #include "LoRaModule.h"
 #include "time.h"
 
@@ -12,6 +13,7 @@ Configurator *conf;
 LoRaModule *lora;
 WebServer *web;
 ApiHandler *apiHandler;
+Display *display;
 
 void setupRadio() {
   log_i("r2lora configured. initializing LoRa module and API");
@@ -23,6 +25,7 @@ void setupRadio() {
     log_i("reset LoRa configuration");
     delete lora;
   }
+  // FIXME do not re-create. reset instead
   lora = new LoRaModule();
   apiHandler =
       new ApiHandler(web, lora, conf->getUsername(), conf->getPassword());
@@ -67,6 +70,8 @@ void setup() {
   conf->setOnConfiguredCallback([] { setupRadio(); });
 
   lora = new LoRaModule();
+  display = new Display(lora);
+  display->init();
   apiHandler =
       new ApiHandler(web, lora, conf->getUsername(), conf->getPassword());
 
@@ -76,4 +81,6 @@ void setup() {
 void loop() {
   conf->loop();
   apiHandler->loop();
+  // display will wait some time
+  display->loop();
 }

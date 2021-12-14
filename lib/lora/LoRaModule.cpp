@@ -50,16 +50,16 @@ void setFlag(void) {
   receivedFlag = true;
 }
 
-int LoRaModule::begin(ObservationRequest *req) {
+int LoRaModule::begin(float freq, float bw, uint8_t sf, uint8_t cr,
+                      uint8_t syncWord, uint16_t preambleLength, uint8_t gain,
+                      uint8_t ldro) {
   int16_t status;
   SX127x *genericSx;
   if (this->type == ChipType::TYPE_SX1278) {
     SX1278 *sx = (SX1278 *)phys;
     // power is default, because of RX request
-    status = sx->begin(req->getFreq(), req->getBw(), req->getSf(), req->getCr(),
-                       req->getSyncWord(), 10, req->getPreambleLength(),
-                       req->getGain());
-    switch (req->getLdro()) {
+    status = sx->begin(freq, bw, sf, cr, syncWord, 10, preambleLength, gain);
+    switch (ldro) {
       case LDRO_AUTO:
         sx->autoLDRO();
         break;
@@ -77,10 +77,8 @@ int LoRaModule::begin(ObservationRequest *req) {
     genericSx = sx;
   } else if (this->type == ChipType::TYPE_SX1276) {
     SX1276 *sx = (SX1276 *)phys;
-    status = sx->begin(req->getFreq(), req->getBw(), req->getSf(), req->getCr(),
-                       req->getSyncWord(), 10, req->getPreambleLength(),
-                       req->getGain());
-    switch (req->getLdro()) {
+    status = sx->begin(freq, bw, sf, cr, syncWord, 10, preambleLength, gain);
+    switch (ldro) {
       case LDRO_AUTO:
         sx->autoLDRO();
         break;

@@ -41,14 +41,24 @@ int ApiHandler::handleStart(String body, String *output) {
     this->sendFailure("unable to parse request", output);
     return 200;
   }
-  ObservationRequest req;
-  int status = req.parseJson(body);
-  if (status != 0) {
+  StaticJsonDocument<256> doc;
+  DeserializationError error = deserializeJson(doc, body);
+  if (error) {
+    log_e("unable to read json: %s", error.c_str());
     this->sendFailure("unable to parse request", output);
     return 200;
   }
-  log_i("received observation request on: %fMhz", req.getFreq());
-  int code = lora->begin(&req);
+  float freq = doc["freq"];                         // = (434.0F)
+  float bw = doc["bw"];                             // = (125.0F)
+  uint8_t sf = doc["sf"];                           // = (uint8_t)9U
+  uint8_t cr = doc["cr"];                           // = (uint8_t)7U
+  uint8_t syncWord = doc["syncWord"];               // = (uint8_t)18U
+  uint16_t preambleLength = doc["preambleLength"];  // = (uint16_t)8U
+  uint8_t gain = doc["gain"];                       // = (uint8_t)0U
+  uint8_t ldro = doc["ldro"];  // 0 - auto, 1 - enable, 2 - disable
+  log_i("received observation request on: %fMhz", freq);
+  int code =
+      lora->begin(freq, bw, sf, cr, syncWord, preambleLength, gain, ldro);
   if (code != 0) {
     this->sendFailure("unable to start lora", output);
     return 200;

@@ -5,7 +5,7 @@
 
 class MockLoRaModule : public LoRaModule {
  public:
-  int begin(ObservationRequest *req);
+  int begin(float freq, float bw, uint8_t sf, uint8_t cr, uint8_t syncWord, uint16_t preambleLength, uint8_t gain, uint8_t ldro);
   LoRaFrame *loop();
   void end();
   bool isReceivingData();

@@ -6,13 +6,14 @@
 
 #include "Chip.h"
 #include "LoRaFrame.h"
-#include "ObservationRequest.h"
+
+enum LDRO_TYPE { LDRO_AUTO = 0, LDRO_ON = 1, LDRO_OFF = 2 };
 
 class LoRaModule {
  public:
   ~LoRaModule();
   int setup(Chip chip);
-  virtual int begin(ObservationRequest *req);
+  virtual int begin(float freq, float bw, uint8_t sf, uint8_t cr, uint8_t syncWord, uint16_t preambleLength, uint8_t gain, uint8_t ldro);
   virtual LoRaFrame *loop();
   virtual void end();
   virtual bool isReceivingData();

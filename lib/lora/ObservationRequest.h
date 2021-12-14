@@ -20,9 +20,6 @@ class ObservationRequest {
   void setCr(uint8_t cr);
   uint8_t getSyncWord();
   void setSyncWord(uint8_t syncWord);
-  //FIXME move power to tx flow
-  int8_t getPower();
-  void setPower(int8_t power);
   uint16_t getPreambleLength();
   void setPreambleLength(uint16_t preambleLength);
   uint8_t getGain();
@@ -36,7 +33,6 @@ class ObservationRequest {
   uint8_t sf = 0;               // = (uint8_t)9U
   uint8_t cr = 0;               // = (uint8_t)7U
   uint8_t syncWord = 0;         // = (uint8_t)18U
-  int8_t power = 0;             // = (int8_t)10
   uint16_t preambleLength = 0;  // = (uint16_t)8U
   uint8_t gain = 0;             // = (uint8_t)0U
   uint8_t ldro = 0;             // 0 - auto, 1 - enable, 2 - disable

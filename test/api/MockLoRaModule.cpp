@@ -11,7 +11,7 @@ LoRaFrame *MockLoRaModule::loop() {
   return result;
 }
 
-void end() {
+void MockLoRaModule::end() {
   // do nothing
 }
 

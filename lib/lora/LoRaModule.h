@@ -12,12 +12,12 @@ class LoRaModule {
  public:
   ~LoRaModule();
   int setup(Chip chip);
-  int begin(ObservationRequest *req);
-  LoRaFrame *loop();
-  void end();
-  bool isReceivingData();
+  virtual int begin(ObservationRequest *req);
+  virtual LoRaFrame *loop();
+  virtual void end();
+  virtual bool isReceivingData();
+  virtual int tx(uint8_t *data, size_t dataLength, int8_t power);
   int getTempRaw(int8_t *value);
-  int tx(uint8_t *data, size_t dataLength, int8_t power);
 
  private:
   Module *module = NULL;

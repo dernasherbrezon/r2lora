@@ -55,9 +55,10 @@ int LoRaModule::begin(ObservationRequest *req) {
   SX127x *genericSx;
   if (this->type == ChipType::TYPE_SX1278) {
     SX1278 *sx = (SX1278 *)phys;
+    // power is default, because of RX request
     status = sx->begin(req->getFreq(), req->getBw(), req->getSf(), req->getCr(),
-                       req->getSyncWord(), req->getPower(),
-                       req->getPreambleLength(), req->getGain());
+                       req->getSyncWord(), 10, req->getPreambleLength(),
+                       req->getGain());
     switch (req->getLdro()) {
       case LDRO_AUTO:
         sx->autoLDRO();
@@ -77,8 +78,8 @@ int LoRaModule::begin(ObservationRequest *req) {
   } else if (this->type == ChipType::TYPE_SX1276) {
     SX1276 *sx = (SX1276 *)phys;
     status = sx->begin(req->getFreq(), req->getBw(), req->getSf(), req->getCr(),
-                       req->getSyncWord(), req->getPower(),
-                       req->getPreambleLength(), req->getGain());
+                       req->getSyncWord(), 10, req->getPreambleLength(),
+                       req->getGain());
     switch (req->getLdro()) {
       case LDRO_AUTO:
         sx->autoLDRO();

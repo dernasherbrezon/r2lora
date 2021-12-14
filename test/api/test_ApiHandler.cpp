@@ -8,7 +8,6 @@ String VALID_RX_REQUEST = String("{\n")
 	+ "	\"sf\": 9,\n"
 	+ "	\"cr\": 6,\n"
 	+ "	\"syncWord\": 18,\n"
-	+ "	\"power\": 10,\n"
 	+ "	\"preambleLength\": 55,\n"
 	+ "	\"gain\": 0,\n"
 	+ "	\"ldro\": 0\n"

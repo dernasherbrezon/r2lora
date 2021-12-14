@@ -22,7 +22,6 @@ int ObservationRequest::parseJson(String input) {
   this->sf = doc["sf"];
   this->cr = doc["cr"];
   this->syncWord = doc["syncWord"];
-  this->power = doc["power"];
   this->preambleLength = doc["preambleLength"];
   this->gain = doc["gain"];
   this->ldro = doc["ldro"];
@@ -41,8 +40,6 @@ uint8_t ObservationRequest::getSyncWord() { return this->syncWord; }
 void ObservationRequest::setSyncWord(uint8_t syncWord) {
   this->syncWord = syncWord;
 }
-int8_t ObservationRequest::getPower() { return this->power; }
-void ObservationRequest::setPower(int8_t power) { this->power = power; }
 uint16_t ObservationRequest::getPreambleLength() {
   return this->preambleLength;
 }

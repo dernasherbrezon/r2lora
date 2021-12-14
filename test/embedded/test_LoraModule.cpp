@@ -11,7 +11,6 @@ void test_start_loop_stop(void) {
   req.setSf((uint8_t)9U);
   req.setCr((uint8_t)7U);
   req.setSyncWord((uint8_t)18U);
-  req.setPower((int8_t)10);
   req.setPreambleLength((uint16_t)8U);
   req.setGain((uint8_t)0U);
   req.setLdro(0);

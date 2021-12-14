@@ -37,6 +37,10 @@ ApiHandler::ApiHandler(WebServer *web, LoRaModule *lora,
 }
 
 int ApiHandler::handleStart(String body, String *output) {
+  if (body.isEmpty()) {
+    this->sendFailure("request is empty", output);
+    return 200;
+  }
   StaticJsonDocument<256> doc;
   DeserializationError error = deserializeJson(doc, body);
   if (error) {
@@ -65,6 +69,10 @@ int ApiHandler::handleStart(String body, String *output) {
 }
 
 int ApiHandler::handleTx(String body, String *output) {
+  if (body.isEmpty()) {
+    this->sendFailure("request is empty", output);
+    return 200;
+  }
   if (lora->isReceivingData()) {
     this->sendFailure("cannot transmit during receive", output);
     return 200;
@@ -86,7 +94,7 @@ int ApiHandler::handleTx(String body, String *output) {
     return 200;
   }
   code = lora->tx(binaryData, binaryDataLength, power);
-  free(output);
+  free(binaryData);
   if (code != 0) {
     this->sendFailure("unable to transmit", output);
     return 200;
@@ -116,6 +124,7 @@ int ApiHandler::handlePull(String body, String *output) {
     obj["snr"] = curFrame->getSnr();
     obj["frequencyError"] = curFrame->getFrequencyError();
     obj["timestamp"] = curFrame->getTimestamp();
+    frames.add(obj);
   }
   serializeJson(json, *output);
   return 200;

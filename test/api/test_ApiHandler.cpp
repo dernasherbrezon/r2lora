@@ -52,7 +52,7 @@ void test_success_start(void) {
 void test_no_request(void) {
   ApiHandler handler(&web, &mock, NULL, NULL);
   String output;
-  int code = handler.handleStart((String)NULL, &output);
+  int code = handler.handleStart("", &output);
   TEST_ASSERT_EQUAL_INT(200, code);
   assertStatus(&output, "FAILURE");
 }

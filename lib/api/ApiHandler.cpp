@@ -55,7 +55,7 @@ int ApiHandler::handleStart(String body, String *output) {
   uint16_t preambleLength = doc["preambleLength"];  // = (uint16_t)8U
   uint8_t gain = doc["gain"];                       // = (uint8_t)0U
   uint8_t ldro = doc["ldro"];  // 0 - auto, 1 - enable, 2 - disable
-  log_i("received observation request on: %fMhz", freq);
+  log_i("received rx request on: %fMhz", freq);
   int code =
       lora->begin(freq, bw, sf, cr, syncWord, preambleLength, gain, ldro);
   if (code != 0) {
@@ -117,13 +117,11 @@ int ApiHandler::handlePull(String body, String *output) {
       return 200;
     }
     obj["data"] = data;
-    // FIXME verify that data was copied in the call above
     free(data);
     obj["rssi"] = curFrame->getRssi();
     obj["snr"] = curFrame->getSnr();
     obj["frequencyError"] = curFrame->getFrequencyError();
     obj["timestamp"] = curFrame->getTimestamp();
-    frames.add(obj);
   }
   serializeJson(json, *output);
   for (size_t i = 0; i < this->receivedFrames.size(); i++) {
@@ -139,7 +137,7 @@ int ApiHandler::handleStop(String body, String *output) {
     return 200;
   }
   this->receiving = false;
-  log_i("stop observation");
+  log_i("stop rx");
   lora->end();
   return this->handlePull(body, output);
 }

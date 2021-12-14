@@ -40,7 +40,7 @@ void handleStatus() {
   // INIT - waiting for AP to initialize
   // CONNECTING - connecting to WiFi
   // RECEIVING - lora is listening for data
-  // IDLE - module is waiting for new observation
+  // IDLE - module is waiting for rx/tx requests
   if (lora == NULL) {
     json["status"] = "INIT";
   } else if (conf->getState() == iotwebconf::NetworkState::Connecting) {

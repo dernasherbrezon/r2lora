@@ -15,9 +15,8 @@ class MockLoRaModule : public LoRaModule {
   std::vector<LoRaFrame *> expectedFrames;
   bool receiving = false;
   int txCode = 0;
-
- private:
   int currentFrameIndex = 0;
+
 };
 
 #endif

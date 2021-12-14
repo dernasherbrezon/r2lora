@@ -20,20 +20,23 @@ String VALID_TX_REQUEST = "{\"data\":\"CAFE\",\"power\":10}";
 String INVALID_TX_REQUEST = "{\"data\":\"CAFE\" \"power\":10}";
 String INVALID_TX_DATA_REQUEST = "{\"data\":\"CAXE\",\"power\":10}";
 
-uint8_t data[] = {0xca, 0xfe};
-
 void setUp(void) {
   mock.beginCode = 0;
   mock.receiving = false;
   mock.txCode = 0;
   mock.expectedFrames.clear();
+  mock.currentFrameIndex = 0;
 }
 
 void setupFrame() {
   // should be deleted in the handlePull
+  size_t data_len = 2;
+  uint8_t *data = (uint8_t *)malloc(sizeof(uint8_t) * data_len);
+  data[0] = 0xca;
+  data[1] = 0xfe;
   LoRaFrame *frame = new LoRaFrame();
   frame->setData(data);
-  frame->setDataLength(sizeof(data) / sizeof(uint8_t));
+  frame->setDataLength(data_len);
   frame->setFrequencyError(13.2);
   frame->setRssi(-11.22);
   frame->setSnr(3.2);

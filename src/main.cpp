@@ -55,13 +55,23 @@ void handleStatus() {
 void setup() {
   log_i("starting");
   web = new WebServer(80);
-  conf = new Configurator(web);
 
   display = new Display();
   display->init();
   display->setStatus(getStatus());
   display->update();
 
+  lora = new LoRaModule();
+  lora->setOnRxStartedCallback([] {
+    display->setStatus(getStatus());
+    display->update();
+  });
+  lora->setOnRxStoppedCallback([] {
+    display->setStatus(getStatus());
+    display->update();
+  });
+
+  conf = new Configurator(web);
   conf->setOnConfiguredCallback([] {
     log_i("configuration completed");
     configTime(0, 0, conf->getNtpServer());
@@ -74,16 +84,6 @@ void setup() {
   conf->setOnWifiConnectedCallback([] {
     log_i("wifi connected");
     display->setIpAddress(WiFi.localIP().toString());
-    display->setStatus(getStatus());
-    display->update();
-  });
-
-  lora = new LoRaModule();
-  lora->setOnRxStartedCallback([] {
-    display->setStatus(getStatus());
-    display->update();
-  });
-  lora->setOnRxStoppedCallback([] {
     display->setStatus(getStatus());
     display->update();
   });

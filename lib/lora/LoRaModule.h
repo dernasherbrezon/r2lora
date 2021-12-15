@@ -14,6 +14,7 @@ class LoRaModule {
  public:
   ~LoRaModule();
   int init(Chip chip);
+  // virtual functions used by Mock overrides in tests
   virtual int startRx(float freq, float bw, uint8_t sf, uint8_t cr, uint8_t syncWord, uint16_t preambleLength, uint8_t gain, uint8_t ldro);
   virtual LoRaFrame *loop();
   virtual void stopRx();

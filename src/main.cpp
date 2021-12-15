@@ -32,20 +32,10 @@ const char *getStatus() {
 }
 
 void setupRadio() {
-  log_i("r2lora configured. initializing LoRa module and API");
-  if (apiHandler != NULL) {
-    log_i("reset API configuration");
-    delete apiHandler;
-  }
-  if (lora != NULL) {
-    log_i("reset LoRa configuration");
-    delete lora;
-  }
-  lora = new LoRaModule();
-  apiHandler = new ApiHandler(web, lora, conf->getUsername(), conf->getPassword());
+  log_i("configuration completed");
   configTime(0, 0, conf->getNtpServer());
   log_i("NTP initialized: %s", conf->getNtpServer());
-  lora->setup(conf->getChip());
+  lora->init(conf->getChip());
 }
 
 void handleStatus() {

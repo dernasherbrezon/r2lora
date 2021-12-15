@@ -21,8 +21,9 @@ volatile bool receivedFlag = false;
 // disable interrupt when it's not needed
 volatile bool enableInterrupt = true;
 
-int LoRaModule::setup(Chip chip) {
-  log_i("init module");
+int LoRaModule::init(Chip chip) {
+  log_i("initialize chip: %s", chip.getName());
+  reset();
   this->module = new Module(PIN_CS, PIN_DI0, PIN_RST);
   if (chip.getType() == ChipType::TYPE_SX1278) {
     this->phys = new SX1278(module);
@@ -34,6 +35,20 @@ int LoRaModule::setup(Chip chip) {
   }
   this->type = chip.getType();
   return 0;
+}
+
+void LoRaModule::reset() {
+  if (this->receivingData) {
+    this->stopRx();
+  }
+  if (this->module != NULL) {
+    free(this->module);
+  }
+  if (this->phys != NULL) {
+    free(this->phys);
+  }
+  // some default type
+  this->type = ChipType::TYPE_SX1278;
 }
 
 // this function is called when a complete packet
@@ -50,7 +65,7 @@ void setFlag(void) {
   receivedFlag = true;
 }
 
-int LoRaModule::begin(float freq, float bw, uint8_t sf, uint8_t cr, uint8_t syncWord, uint16_t preambleLength, uint8_t gain, uint8_t ldro) {
+int LoRaModule::startRx(float freq, float bw, uint8_t sf, uint8_t cr, uint8_t syncWord, uint16_t preambleLength, uint8_t gain, uint8_t ldro) {
   int16_t status;
   SX127x *genericSx;
   if (this->type == ChipType::TYPE_SX1278) {
@@ -103,6 +118,7 @@ int LoRaModule::begin(float freq, float bw, uint8_t sf, uint8_t cr, uint8_t sync
   status = genericSx->startReceive();
   if (status == ERR_NONE) {
     this->receivingData = true;
+    log_i("RX started");
   }
   return status;
 }
@@ -178,7 +194,8 @@ LoRaFrame *LoRaModule::readFrame() {
   return result;
 }
 
-void LoRaModule::end() {
+void LoRaModule::stopRx() {
+  log_i("RX stopped");
   int16_t status = ERR_NONE;
   if (this->type == ChipType::TYPE_SX1278) {
     SX1278 *sx = (SX1278 *)this->phys;

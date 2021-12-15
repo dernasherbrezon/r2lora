@@ -43,7 +43,7 @@ int ApiHandler::handleStart(String body, String *output) {
   uint8_t gain = doc["gain"];                       // = (uint8_t)0U
   uint8_t ldro = doc["ldro"];                       // 0 - auto, 1 - enable, 2 - disable
   log_i("received rx request on: %fMhz", freq);
-  int code = lora->begin(freq, bw, sf, cr, syncWord, preambleLength, gain, ldro);
+  int code = lora->startRx(freq, bw, sf, cr, syncWord, preambleLength, gain, ldro);
   if (code != 0) {
     this->sendFailure("unable to start lora", output);
     return 200;
@@ -122,8 +122,7 @@ int ApiHandler::handleStop(String body, String *output) {
     return 200;
   }
   this->receiving = false;
-  log_i("stop rx");
-  lora->end();
+  lora->stopRx();
   return this->handlePull(body, output);
 }
 

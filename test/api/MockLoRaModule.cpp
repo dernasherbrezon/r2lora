@@ -1,9 +1,9 @@
 #include "MockLoRaModule.h"
 
-int MockLoRaModule::begin(float freq, float bw, uint8_t sf, uint8_t cr,
+int MockLoRaModule::startRx(float freq, float bw, uint8_t sf, uint8_t cr,
                           uint8_t syncWord, uint16_t preambleLength,
                           uint8_t gain, uint8_t ldro) {
-  return beginCode;
+  return rxCode;
 }
 
 LoRaFrame *MockLoRaModule::loop() {
@@ -15,7 +15,7 @@ LoRaFrame *MockLoRaModule::loop() {
   return result;
 }
 
-void MockLoRaModule::end() {
+void MockLoRaModule::stopRx() {
   // do nothing
 }
 

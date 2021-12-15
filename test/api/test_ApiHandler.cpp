@@ -21,7 +21,7 @@ String INVALID_TX_REQUEST = "{\"data\":\"CAFE\" \"power\":10}";
 String INVALID_TX_DATA_REQUEST = "{\"data\":\"CAXE\",\"power\":10}";
 
 void setUp(void) {
-  mock.beginCode = 0;
+  mock.rxCode = 0;
   mock.receiving = false;
   mock.txCode = 0;
   mock.expectedFrames.clear();
@@ -77,7 +77,7 @@ void test_invalid_json(void) {
 
 void test_begin_failed(void) {
   ApiHandler handler(&web, &mock, NULL, NULL);
-  mock.beginCode = -1;
+  mock.rxCode = -1;
   String output;
   int code = handler.handleStart(VALID_RX_REQUEST, &output);
   TEST_ASSERT_EQUAL_INT(200, code);

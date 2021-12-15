@@ -24,6 +24,8 @@ const char *getStatus() {
     return "INIT";
   } else if (conf->getState() == iotwebconf::NetworkState::Connecting) {
     return "CONNECTING";
+  } else if (conf->getState() == iotwebconf::NetworkState::ApMode) {
+    return "CONFIG";
   } else if (lora->isReceivingData()) {
     return "RECEIVING";
   } else {
@@ -58,7 +60,6 @@ void setup() {
   display = new Display();
   display->init();
   display->setStatus(getStatus());
-  display->setIpAddress(WiFi.localIP().toString());
   display->update();
 
   conf->setOnConfiguredCallback([] {

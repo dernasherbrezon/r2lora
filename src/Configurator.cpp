@@ -41,6 +41,10 @@ void Configurator::setOnConfiguredCallback(std::function<void()> func) {
   });
 }
 
+void Configurator::setOnWifiConnectedCallback(std::function<void()> func) {
+  this->conf->setWifiConnectionCallback(func);
+}
+
 void Configurator::loop() {
   if (this->conf == NULL) {
     return;
@@ -57,6 +61,10 @@ const char *Configurator::getPassword() {
   return this->conf->getApPasswordParameter()->valueBuffer;
 }
 const char *Configurator::getNtpServer() { return this->ntpServer; }
+
+const char *Configurator::getDeviceName() {
+  return this->conf->getThingNameParameter()->valueBuffer;
+}
 
 Chip Configurator::getChip() {
   return this->chips->getAll()[atoi(this->chipIndex)];

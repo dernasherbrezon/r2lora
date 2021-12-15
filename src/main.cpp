@@ -25,7 +25,9 @@ void setupRadio() {
     log_i("reset LoRa configuration");
     delete lora;
   }
-  // FIXME do not re-create. reset instead
+  display->updateStationName(conf->getDeviceName());
+  display->updateStatus(getStatus());
+
   lora = new LoRaModule();
   apiHandler =
       new ApiHandler(web, lora, conf->getUsername(), conf->getPassword());
@@ -34,24 +36,30 @@ void setupRadio() {
   lora->setup(conf->getChip());
 }
 
+const char *getStatus() {
+  // INIT - waiting for AP to initialize
+  // CONNECTING - connecting to WiFi
+  // RECEIVING - lora is listening for data
+  // IDLE - module is waiting for rx/tx requests
+  if (lora == NULL) {
+    return "INIT";
+  } else if (conf->getState() == iotwebconf::NetworkState::Connecting) {
+    return "CONNECTING";
+  } else if (lora->isReceivingData()) {
+    return "RECEIVING";
+  } else {
+    return "IDLE";
+  }
+}
+
 void handleStatus() {
   if (!web->authenticate(conf->getUsername(), conf->getPassword())) {
     web->requestAuthentication();
     return;
   }
   StaticJsonDocument<128> json;
-  // INIT - waiting for AP to initialize
-  // CONNECTING - connecting to WiFi
-  // RECEIVING - lora is listening for data
-  // IDLE - module is waiting for rx/tx requests
-  if (lora == NULL) {
-    json["status"] = "INIT";
-  } else if (conf->getState() == iotwebconf::NetworkState::Connecting) {
-    json["status"] = "CONNECTING";
-  } else if (lora->isReceivingData()) {
-    json["status"] = "RECEIVING";
-  } else {
-    json["status"] = "IDLE";
+  json["status"] = getStatus();
+  if (lora != NULL) {
     int8_t sxTemperature;
     if (lora->getTempRaw(&sxTemperature) == 0) {
       json["loraTemperature"] = sxTemperature;
@@ -67,11 +75,18 @@ void setup() {
   log_i("starting");
   web = new WebServer(80);
   conf = new Configurator(web);
+
+  display = new Display();
+  display->init();
+  display->updateStatus(getStatus());
+  display->updateIpAddress(WiFi.localIP().toString());
+
   conf->setOnConfiguredCallback([] { setupRadio(); });
+  conf->setOnWifiConnectedCallback(
+      [] { display->updateIpAddress(WiFi.localIP().toString()); });
 
   lora = new LoRaModule();
-  display = new Display(lora);
-  display->init();
+
   apiHandler =
       new ApiHandler(web, lora, conf->getUsername(), conf->getPassword());
 
@@ -81,6 +96,4 @@ void setup() {
 void loop() {
   conf->loop();
   apiHandler->loop();
-  // display will wait some time
-  display->loop();
 }

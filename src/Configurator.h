@@ -14,6 +14,7 @@ class Configurator {
   ~Configurator();
 
   void setOnConfiguredCallback(std::function<void()> func);
+  void setOnWifiConnectedCallback(std::function<void()> func);
   Chip getChip();
   iotwebconf::NetworkState getState();
 
@@ -21,6 +22,7 @@ class Configurator {
   const char *getUsername();
   const char *getPassword();
   const char *getNtpServer();
+  const char *getDeviceName();
 
  private:
   DNSServer *dnsServer = NULL;

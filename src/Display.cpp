@@ -1,5 +1,5 @@
 #include "Display.h"
-
+#include <esp32-hal-log.h>
 #include <WiFi.h>
 
 // defined in platformio.ini
@@ -28,10 +28,17 @@ static uint8_t logo_bits[] = {
 
 void Display::init() {
   if (PIN_OLED_SDA == 0 || PIN_OLED_SCL == 0) {
+    log_i("OLED pins were not configured. continue without display");
     return;
   }
   this->display = new SSD1306Wire(0x3c, PIN_OLED_SDA, PIN_OLED_SCL);
-  this->display->init();
+  if (!this->display->init()) {
+    log_e("unable initialize display. continue without display");
+    delete this->display;
+    this->display = NULL;
+    return;
+  }
+  log_i("display was initialized");
 }
 
 void Display::update() {

@@ -6,34 +6,21 @@
 
 #include "JsonHandler.h"
 
-ApiHandler::ApiHandler(WebServer *web, LoRaModule *lora,
-                       const char *apiUsername, const char *apiPassword) {
+ApiHandler::ApiHandler(WebServer *web, LoRaModule *lora, const char *apiUsername, const char *apiPassword) {
   this->web = web;
   this->lora = lora;
 
-  std::function<int(String, String *)> startFunc =
-      std::bind(&ApiHandler::handleStart, this, std::placeholders::_1,
-                std::placeholders::_2);
-  this->web->addHandler(new JsonHandler(startFunc, "/rx/start", HTTP_POST,
-                                        apiUsername, apiPassword));
+  std::function<int(String, String *)> startFunc = std::bind(&ApiHandler::handleStart, this, std::placeholders::_1, std::placeholders::_2);
+  this->web->addHandler(new JsonHandler(startFunc, "/rx/start", HTTP_POST, apiUsername, apiPassword));
 
-  std::function<int(String, String *)> stopFunc =
-      std::bind(&ApiHandler::handleStop, this, std::placeholders::_1,
-                std::placeholders::_2);
-  this->web->addHandler(new JsonHandler(stopFunc, "/rx/stop", HTTP_POST,
-                                        apiUsername, apiPassword));
+  std::function<int(String, String *)> stopFunc = std::bind(&ApiHandler::handleStop, this, std::placeholders::_1, std::placeholders::_2);
+  this->web->addHandler(new JsonHandler(stopFunc, "/rx/stop", HTTP_POST, apiUsername, apiPassword));
 
-  std::function<int(String, String *)> pullFunc =
-      std::bind(&ApiHandler::handlePull, this, std::placeholders::_1,
-                std::placeholders::_2);
-  this->web->addHandler(new JsonHandler(pullFunc, "/rx/pull", HTTP_GET,
-                                        apiUsername, apiPassword));
+  std::function<int(String, String *)> pullFunc = std::bind(&ApiHandler::handlePull, this, std::placeholders::_1, std::placeholders::_2);
+  this->web->addHandler(new JsonHandler(pullFunc, "/rx/pull", HTTP_GET, apiUsername, apiPassword));
 
-  std::function<int(String, String *)> txFunc =
-      std::bind(&ApiHandler::handleTx, this, std::placeholders::_1,
-                std::placeholders::_2);
-  this->web->addHandler(
-      new JsonHandler(txFunc, "/tx/send", HTTP_POST, apiUsername, apiPassword));
+  std::function<int(String, String *)> txFunc = std::bind(&ApiHandler::handleTx, this, std::placeholders::_1, std::placeholders::_2);
+  this->web->addHandler(new JsonHandler(txFunc, "/tx/send", HTTP_POST, apiUsername, apiPassword));
 }
 
 int ApiHandler::handleStart(String body, String *output) {
@@ -54,10 +41,9 @@ int ApiHandler::handleStart(String body, String *output) {
   uint8_t syncWord = doc["syncWord"];               // = (uint8_t)18U
   uint16_t preambleLength = doc["preambleLength"];  // = (uint16_t)8U
   uint8_t gain = doc["gain"];                       // = (uint8_t)0U
-  uint8_t ldro = doc["ldro"];  // 0 - auto, 1 - enable, 2 - disable
+  uint8_t ldro = doc["ldro"];                       // 0 - auto, 1 - enable, 2 - disable
   log_i("received rx request on: %fMhz", freq);
-  int code =
-      lora->begin(freq, bw, sf, cr, syncWord, preambleLength, gain, ldro);
+  int code = lora->begin(freq, bw, sf, cr, syncWord, preambleLength, gain, ldro);
   if (code != 0) {
     this->sendFailure("unable to start lora", output);
     return 200;
@@ -110,8 +96,7 @@ int ApiHandler::handlePull(String body, String *output) {
     JsonObject obj = frames.createNestedObject();
     LoRaFrame *curFrame = this->receivedFrames[i];
     char *data = NULL;
-    int code = convertHexToString(curFrame->getData(),
-                                  curFrame->getDataLength(), &data);
+    int code = convertHexToString(curFrame->getData(), curFrame->getDataLength(), &data);
     if (code != 0) {
       this->sendFailure("unable to serialize data", output);
       return 200;

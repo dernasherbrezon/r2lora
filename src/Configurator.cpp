@@ -15,20 +15,22 @@ Configurator::Configurator(WebServer *webServer) {
       this->chips->getChipIndices(), this->chips->getChipNames(),
       this->chips->getAll().size(), STRING_LEN);
 
-  this->allCustomParameters =
-      new IotWebConfParameterGroup("allCustomParameters", LOG_TAG);
+  this->allCustomParameters = new IotWebConfParameterGroup("allCustomParameters", LOG_TAG);
   allCustomParameters->addItem(this->chipType);
   allCustomParameters->addItem(&this->ntpServerParameter);
   this->conf->addParameterGroup(this->allCustomParameters);
 
   // c++ magic. bind class-based method to function
-  std::function<boolean(iotwebconf::WebRequestWrapper *)> func =
-      std::bind(&Configurator::formValidator, this, std::placeholders::_1);
+  std::function<boolean(iotwebconf::WebRequestWrapper *)> func = std::bind(&Configurator::formValidator, this, std::placeholders::_1);
   this->conf->setFormValidator(func);
 
   this->configured = this->conf->init();
-  webServer->on("/", [this] { this->conf->handleConfig(); });
-  webServer->onNotFound([this]() { this->conf->handleNotFound(); });
+  webServer->on("/", [this] {
+    this->conf->handleConfig();
+  });
+  webServer->onNotFound([this]() {
+    this->conf->handleNotFound();
+  });
 }
 
 void Configurator::setOnConfiguredCallback(std::function<void()> func) {
@@ -55,13 +57,15 @@ void Configurator::loop() {
 iotwebconf::NetworkState Configurator::getState() {
   return this->conf->getState();
 }
-
-const char *Configurator::getUsername() { return IOTWEBCONF_ADMIN_USER_NAME; }
+const char *Configurator::getUsername() {
+  return IOTWEBCONF_ADMIN_USER_NAME;
+}
 const char *Configurator::getPassword() {
   return this->conf->getApPasswordParameter()->valueBuffer;
 }
-const char *Configurator::getNtpServer() { return this->ntpServer; }
-
+const char *Configurator::getNtpServer() {
+  return this->ntpServer;
+}
 const char *Configurator::getDeviceName() {
   return this->conf->getThingNameParameter()->valueBuffer;
 }

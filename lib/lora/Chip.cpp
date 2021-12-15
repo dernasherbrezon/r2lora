@@ -5,5 +5,9 @@ Chip::Chip(const char *name, ChipType type) {
   this->type = type;
 }
 
-const char *Chip::getName() { return this->name; }
-ChipType Chip::getType() { return this->type; }
+const char *Chip::getName() {
+  return this->name;
+}
+ChipType Chip::getType() {
+  return this->type;
+}

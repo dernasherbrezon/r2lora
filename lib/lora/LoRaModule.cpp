@@ -50,9 +50,7 @@ void setFlag(void) {
   receivedFlag = true;
 }
 
-int LoRaModule::begin(float freq, float bw, uint8_t sf, uint8_t cr,
-                      uint8_t syncWord, uint16_t preambleLength, uint8_t gain,
-                      uint8_t ldro) {
+int LoRaModule::begin(float freq, float bw, uint8_t sf, uint8_t cr, uint8_t syncWord, uint16_t preambleLength, uint8_t gain, uint8_t ldro) {
   int16_t status;
   SX127x *genericSx;
   if (this->type == ChipType::TYPE_SX1278) {
@@ -176,8 +174,7 @@ LoRaFrame *LoRaModule::readFrame() {
     result->setSnr(sx->getSNR());
     result->setFrequencyError(sx->getFrequencyError(false));
   }
-  log_i("frame received: %d bytes RSSI: %f SNR: %f", result->getDataLength(),
-        result->getRssi(), result->getSnr());
+  log_i("frame received: %d bytes RSSI: %f SNR: %f", result->getDataLength(), result->getRssi(), result->getSnr());
   return result;
 }
 
@@ -196,7 +193,9 @@ void LoRaModule::end() {
   this->receivingData = false;
 }
 
-bool LoRaModule::isReceivingData() { return this->receivingData; }
+bool LoRaModule::isReceivingData() {
+  return this->receivingData;
+}
 
 int LoRaModule::getTempRaw(int8_t *value) {
   if (this->type == ChipType::TYPE_SX1278) {

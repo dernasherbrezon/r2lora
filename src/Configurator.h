@@ -35,8 +35,7 @@ class Configurator {
   char chipIndex[STRING_LEN];
   char ntpServer[STRING_LEN] = "";
   bool configured = false;
-  IotWebConfTextParameter ntpServerParameter = IotWebConfTextParameter(
-      "NTP server", "ntpServer", this->ntpServer, STRING_LEN, "pool.ntp.org");
+  IotWebConfTextParameter ntpServerParameter = IotWebConfTextParameter("NTP server", "ntpServer", this->ntpServer, STRING_LEN, "pool.ntp.org");
 
   bool formValidator(iotwebconf::WebRequestWrapper *web);
 };

@@ -42,8 +42,7 @@ void setupRadio() {
     delete lora;
   }
   lora = new LoRaModule();
-  apiHandler =
-      new ApiHandler(web, lora, conf->getUsername(), conf->getPassword());
+  apiHandler = new ApiHandler(web, lora, conf->getUsername(), conf->getPassword());
   configTime(0, 0, conf->getNtpServer());
   log_i("NTP initialized: %s", conf->getNtpServer());
   lora->setup(conf->getChip());
@@ -93,10 +92,11 @@ void setup() {
 
   lora = new LoRaModule();
 
-  apiHandler =
-      new ApiHandler(web, lora, conf->getUsername(), conf->getPassword());
+  apiHandler = new ApiHandler(web, lora, conf->getUsername(), conf->getPassword());
 
-  web->on("/status", HTTP_GET, []() { handleStatus(); });
+  web->on("/status", HTTP_GET, []() {
+    handleStatus();
+  });
 }
 
 void loop() {

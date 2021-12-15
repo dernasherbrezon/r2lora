@@ -60,11 +60,15 @@ void Display::update() {
   this->display->display();
 }
 
-void Display::setStatus(const char *status) { this->status = status; }
+void Display::setStatus(const char *status) {
+  this->status = status;
+}
 void Display::setStationName(const char *stationName) {
   this->stationName = stationName;
 }
-void Display::setIpAddress(String ipAddress) { this->ipAddress = ipAddress; }
+void Display::setIpAddress(String ipAddress) {
+  this->ipAddress = ipAddress;
+}
 
 Display::~Display() {
   if (display != NULL) {

@@ -1,8 +1,6 @@
 #include "JsonHandler.h"
 
-JsonHandler::JsonHandler(std::function<int(String, String *)> func,
-                         const Uri &uri, HTTPMethod method,
-                         const char *username, const char *password) {
+JsonHandler::JsonHandler(std::function<int(String, String *)> func, const Uri &uri, HTTPMethod method, const char *username, const char *password) {
   this->func = func;
   this->uri = uri.clone();
   this->method = method;
@@ -11,7 +9,9 @@ JsonHandler::JsonHandler(std::function<int(String, String *)> func,
   this->uri->initPathArgs(pathArgs);
 }
 
-JsonHandler::~JsonHandler() { delete uri; }
+JsonHandler::~JsonHandler() {
+  delete uri;
+}
 
 bool JsonHandler::canHandle(HTTPMethod requestMethod, String requestUri) {
   if (method != HTTP_ANY && method != requestMethod) {
@@ -20,10 +20,11 @@ bool JsonHandler::canHandle(HTTPMethod requestMethod, String requestUri) {
   return uri->canHandle(requestUri, pathArgs);
 }
 
-bool JsonHandler::canUpload(String requestUri) { return false; }
+bool JsonHandler::canUpload(String requestUri) {
+  return false;
+}
 
-bool JsonHandler::handle(WebServer &server, HTTPMethod requestMethod,
-                         String requestUri) {
+bool JsonHandler::handle(WebServer &server, HTTPMethod requestMethod, String requestUri) {
   if (!canHandle(requestMethod, requestUri)) {
     return false;
   }
@@ -37,7 +38,6 @@ bool JsonHandler::handle(WebServer &server, HTTPMethod requestMethod,
   return true;
 }
 
-void JsonHandler::upload(WebServer &server, String requestUri,
-                         HTTPUpload &upload) {
+void JsonHandler::upload(WebServer &server, String requestUri, HTTPUpload &upload) {
   // do nothing
 }

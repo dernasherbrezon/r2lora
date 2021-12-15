@@ -7,8 +7,7 @@
 
 class ApiHandler {
  public:
-  ApiHandler(WebServer *web, LoRaModule *lora, const char *apiUsername,
-             const char *apiPassword);
+  ApiHandler(WebServer *web, LoRaModule *lora, const char *apiUsername, const char *apiPassword);
   void loop();
 
   // for tests mostly
@@ -18,7 +17,6 @@ class ApiHandler {
   int handleTx(String body, String *output);
 
  private:
-
   void sendFailure(const char *message, String *output);
   void sendSuccess(String *output);
 

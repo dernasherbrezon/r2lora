@@ -19,7 +19,9 @@ void MockLoRaModule::end() {
   // do nothing
 }
 
-bool MockLoRaModule::isReceivingData() { return receiving; }
+bool MockLoRaModule::isReceivingData() {
+  return receiving;
+}
 int MockLoRaModule::tx(uint8_t *data, size_t dataLength, int8_t power) {
   return txCode;
 }

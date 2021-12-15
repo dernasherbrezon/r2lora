@@ -5,8 +5,7 @@
 
 class JsonHandler : public RequestHandler {
  public:
-  JsonHandler(std::function<int(String, String *)> func, const Uri &uri,
-              HTTPMethod method, const char *username, const char *password);
+  JsonHandler(std::function<int(String, String *)> func, const Uri &uri, HTTPMethod method, const char *username, const char *password);
 
   ~JsonHandler();
 
@@ -14,11 +13,9 @@ class JsonHandler : public RequestHandler {
 
   bool canUpload(String requestUri) override;
 
-  bool handle(WebServer &server, HTTPMethod requestMethod,
-              String requestUri) override;
+  bool handle(WebServer &server, HTTPMethod requestMethod, String requestUri) override;
 
-  void upload(WebServer &server, String requestUri,
-              HTTPUpload &upload) override;
+  void upload(WebServer &server, String requestUri, HTTPUpload &upload) override;
 
  private:
   std::function<int(String, String *)> func = nullptr;

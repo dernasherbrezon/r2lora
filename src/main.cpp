@@ -31,13 +31,6 @@ const char *getStatus() {
   }
 }
 
-void setupRadio() {
-  log_i("configuration completed");
-  configTime(0, 0, conf->getNtpServer());
-  log_i("NTP initialized: %s", conf->getNtpServer());
-  lora->init(conf->getChip());
-}
-
 void handleStatus() {
   if (!web->authenticate(conf->getUsername(), conf->getPassword())) {
     web->requestAuthentication();
@@ -69,18 +62,30 @@ void setup() {
   display->update();
 
   conf->setOnConfiguredCallback([] {
-    setupRadio();
+    log_i("configuration completed");
+    configTime(0, 0, conf->getNtpServer());
+    log_i("NTP initialized: %s", conf->getNtpServer());
+    lora->init(conf->getChip());
     display->setStationName(conf->getDeviceName());
     display->setStatus(getStatus());
     display->update();
   });
   conf->setOnWifiConnectedCallback([] {
+    log_i("wifi connected");
     display->setIpAddress(WiFi.localIP().toString());
     display->setStatus(getStatus());
     display->update();
   });
 
   lora = new LoRaModule();
+  lora->setOnRxStartedCallback([] {
+    display->setStatus(getStatus());
+    display->update();
+  });
+  lora->setOnRxStoppedCallback([] {
+    display->setStatus(getStatus());
+    display->update();
+  });
 
   apiHandler = new ApiHandler(web, lora, conf->getUsername(), conf->getPassword());
 

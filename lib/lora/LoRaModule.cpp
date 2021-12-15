@@ -119,6 +119,9 @@ int LoRaModule::startRx(float freq, float bw, uint8_t sf, uint8_t cr, uint8_t sy
   if (status == ERR_NONE) {
     this->receivingData = true;
     log_i("RX started");
+    if (this->rxStartedCallback != NULL) {
+      this->rxStartedCallback();
+    }
   }
   return status;
 }
@@ -208,10 +211,20 @@ void LoRaModule::stopRx() {
     log_e("unable to put module back to sleep: %d", status);
   }
   this->receivingData = false;
+  if (this->rxStoppedCallback != NULL) {
+    this->rxStoppedCallback();
+  }
 }
 
 bool LoRaModule::isReceivingData() {
   return this->receivingData;
+}
+
+void LoRaModule::setOnRxStartedCallback(std::function<void()> func) {
+  this->rxStartedCallback = func;
+}
+void LoRaModule::setOnRxStoppedCallback(std::function<void()> func) {
+  this->rxStoppedCallback = func;
 }
 
 int LoRaModule::getTempRaw(int8_t *value) {

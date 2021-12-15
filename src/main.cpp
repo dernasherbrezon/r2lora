@@ -15,27 +15,6 @@ WebServer *web;
 ApiHandler *apiHandler;
 Display *display;
 
-void setupRadio() {
-  log_i("r2lora configured. initializing LoRa module and API");
-  if (apiHandler != NULL) {
-    log_i("reset API configuration");
-    delete apiHandler;
-  }
-  if (lora != NULL) {
-    log_i("reset LoRa configuration");
-    delete lora;
-  }
-  display->updateStationName(conf->getDeviceName());
-  display->updateStatus(getStatus());
-
-  lora = new LoRaModule();
-  apiHandler =
-      new ApiHandler(web, lora, conf->getUsername(), conf->getPassword());
-  configTime(0, 0, conf->getNtpServer());
-  log_i("NTP initialized: %s", conf->getNtpServer());
-  lora->setup(conf->getChip());
-}
-
 const char *getStatus() {
   // INIT - waiting for AP to initialize
   // CONNECTING - connecting to WiFi
@@ -50,6 +29,24 @@ const char *getStatus() {
   } else {
     return "IDLE";
   }
+}
+
+void setupRadio() {
+  log_i("r2lora configured. initializing LoRa module and API");
+  if (apiHandler != NULL) {
+    log_i("reset API configuration");
+    delete apiHandler;
+  }
+  if (lora != NULL) {
+    log_i("reset LoRa configuration");
+    delete lora;
+  }
+  lora = new LoRaModule();
+  apiHandler =
+      new ApiHandler(web, lora, conf->getUsername(), conf->getPassword());
+  configTime(0, 0, conf->getNtpServer());
+  log_i("NTP initialized: %s", conf->getNtpServer());
+  lora->setup(conf->getChip());
 }
 
 void handleStatus() {
@@ -78,12 +75,21 @@ void setup() {
 
   display = new Display();
   display->init();
-  display->updateStatus(getStatus());
-  display->updateIpAddress(WiFi.localIP().toString());
+  display->setStatus(getStatus());
+  display->setIpAddress(WiFi.localIP().toString());
+  display->update();
 
-  conf->setOnConfiguredCallback([] { setupRadio(); });
-  conf->setOnWifiConnectedCallback(
-      [] { display->updateIpAddress(WiFi.localIP().toString()); });
+  conf->setOnConfiguredCallback([] {
+    setupRadio();
+    display->setStationName(conf->getDeviceName());
+    display->setStatus(getStatus());
+    display->update();
+  });
+  conf->setOnWifiConnectedCallback([] {
+    display->setIpAddress(WiFi.localIP().toString());
+    display->setStatus(getStatus());
+    display->update();
+  });
 
   lora = new LoRaModule();
 

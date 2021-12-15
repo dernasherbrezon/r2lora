@@ -9,11 +9,15 @@ class Display {
  public:
   ~Display();
   void init();
-  void updateStatus(const char *status);
-  void updateStationName(const char *stationName);
-  void updateIpAddress(String ipAddress);
+  void setStatus(const char *status);
+  void setStationName(const char *stationName);
+  void setIpAddress(String ipAddress);
+  void update();
 
  private:
+  const char *status = NULL;
+  const char *stationName = NULL;
+  String ipAddress;
   SSD1306Wire *display = NULL;
 };
 

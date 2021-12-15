@@ -3,6 +3,7 @@
 
 #include <RadioLib.h>
 #include <stdint.h>
+#include <functional>
 
 #include "Chip.h"
 #include "LoRaFrame.h"
@@ -19,12 +20,16 @@ class LoRaModule {
   virtual bool isReceivingData();
   virtual int tx(uint8_t *data, size_t dataLength, int8_t power);
   int getTempRaw(int8_t *value);
+  void setOnRxStartedCallback(std::function<void()> func);
+  void setOnRxStoppedCallback(std::function<void()> func);
 
  private:
   Module *module = NULL;
   PhysicalLayer *phys = NULL;
   ChipType type = ChipType::TYPE_SX1278;  // some default chip type
   bool receivingData = false;
+  std::function<void()> rxStartedCallback = NULL;
+  std::function<void()> rxStoppedCallback = NULL;
 
   LoRaFrame *readFrame();
   void reset();

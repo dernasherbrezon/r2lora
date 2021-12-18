@@ -1,6 +1,7 @@
 #include "Display.h"
-#include <esp32-hal-log.h>
+
 #include <WiFi.h>
+#include <esp32-hal-log.h>
 
 // defined in platformio.ini
 #ifndef PIN_OLED_SDA
@@ -62,9 +63,14 @@ void Display::update() {
   if (!ipAddress.isEmpty()) {
     this->display->drawString(0, logo_height + 5, "http://" + ipAddress);
   }
-  // Used for OTA updates
-  // this->display->drawProgressBar(0, logo_height + 20, 127, 5, 45);
+  if (progress > 0) {
+    this->display->drawProgressBar(0, logo_height + 20, 127, 5, progress);
+  }
   this->display->display();
+}
+
+void Display::setProgress(uint8_t progress) {
+  this->progress = progress;
 }
 
 void Display::setStatus(const char *status) {

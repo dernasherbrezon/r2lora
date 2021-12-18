@@ -4,6 +4,7 @@
 #include <esp32-hal-log.h>
 
 #include "ApiHandler.h"
+#include "AutoUpdater.h"
 #include "Configurator.h"
 #include "Display.h"
 #include "LoRaModule.h"
@@ -14,18 +15,17 @@ LoRaModule *lora;
 WebServer *web;
 ApiHandler *apiHandler;
 Display *display;
+AutoUpdater *updater;
 
 const char *getStatus() {
   // INIT - waiting for AP to initialize
   // CONNECTING - connecting to WiFi
   // RECEIVING - lora is listening for data
   // IDLE - module is waiting for rx/tx requests
-  if (lora == NULL) {
-    return "INIT";
-  } else if (conf->getState() == iotwebconf::NetworkState::Connecting) {
+  if (conf->getState() == iotwebconf::NetworkState::Connecting) {
     return "CONNECTING";
   } else if (conf->getState() == iotwebconf::NetworkState::ApMode) {
-    return "CONFIG";
+    return "INIT";
   } else if (lora->isReceivingData()) {
     return "RECEIVING";
   } else {
@@ -71,6 +71,13 @@ void setup() {
     display->update();
   });
 
+  updater = new AutoUpdater();
+  updater->setOnUpdate([](size_t current, size_t total) {
+    display->setStatus("UPDATING");
+    display->setProgress((uint8_t)((float)current / total));
+    display->update();
+  });
+
   conf = new Configurator(web);
   conf->setOnConfiguredCallback([] {
     log_i("configuration completed");
@@ -80,6 +87,8 @@ void setup() {
     display->setStationName(conf->getDeviceName());
     display->setStatus(getStatus());
     display->update();
+    //FIXME check auto update config
+    updater->init("r2cloud.server", 80, 24 * 60 * 60 * 1000); // update once a day
   });
   conf->setOnWifiConnectedCallback([] {
     log_i("wifi connected");
@@ -98,4 +107,5 @@ void setup() {
 void loop() {
   conf->loop();
   apiHandler->loop();
+  updater->loop();
 }

@@ -88,7 +88,7 @@ void setup() {
     display->setStatus(getStatus());
     display->update();
     //FIXME check auto update config
-    updater->init("r2cloud.server", 80, 24 * 60 * 60 * 1000); // update once a day
+    updater->init("r2cloud.server", 80, 24 * 60 * 60 * 1000, "r2lora"); // update once a day
   });
   conf->setOnWifiConnectedCallback([] {
     log_i("wifi connected");

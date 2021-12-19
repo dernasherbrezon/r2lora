@@ -1,12 +1,14 @@
 
 #include "Configurator.h"
 
+#include "Version.h"
+
 static const char *LOG_TAG = "r2lora";
 
 Configurator::Configurator(WebServer *webServer) {
   this->chips = new Chips();
   this->dnsServer = new DNSServer();
-  this->conf = new IotWebConf(LOG_TAG, dnsServer, webServer, "", "0.1");
+  this->conf = new IotWebConf(LOG_TAG, dnsServer, webServer, "", FIRMWARE_VERSION);
   this->conf->getThingNameParameter()->label = "Device name";
   this->conf->getApPasswordParameter()->label = "Device password";
 

@@ -1,4 +1,3 @@
-#include <Arduino.h>
 #include <ArduinoJson.h>
 #include <WiFiServer.h>
 #include <esp32-hal-log.h>
@@ -9,6 +8,10 @@
 #include "Display.h"
 #include "LoRaModule.h"
 #include "time.h"
+
+#ifndef BOARD_NAME
+#define BOARD_NAME "native"
+#endif
 
 Configurator *conf;
 LoRaModule *lora;
@@ -88,7 +91,7 @@ void setup() {
     display->setStatus(getStatus());
     display->update();
     //FIXME check auto update config
-    updater->init("r2cloud.server", 80, 24 * 60 * 60 * 1000, "r2lora"); // update once a day
+    updater->init("apt.r2server.ru", 80, 24 * 60 * 60 * 1000, BOARD_NAME);  // update once a day
   });
   conf->setOnWifiConnectedCallback([] {
     log_i("wifi connected");

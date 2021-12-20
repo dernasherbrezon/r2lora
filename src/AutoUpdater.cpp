@@ -5,6 +5,8 @@
 #include <esp32-hal-log.h>
 #include <time.h>
 
+static const char *FIRMWARE_INDEX = "/fota/r2lora.json";
+
 void AutoUpdater::loop() {
   if (this->client == NULL) {
     return;
@@ -14,7 +16,7 @@ void AutoUpdater::loop() {
     return;
   }
   log_i("time for auto update");
-  if (!this->client->begin(hostname, port, "/ota.txt??")) {
+  if (!this->client->begin(hostname, port, FIRMWARE_INDEX)) {
     log_e("unable to begin");
     return;
   }
@@ -22,8 +24,10 @@ void AutoUpdater::loop() {
     this->client->addHeader("If-Modified-Since", this->lastModified);
   }
   int code = this->client->GET();
-  if (code == 304) {
+  if (code == 304 || code == 404) {
     log_i("no firmware updates");
+    this->lastUpdateTime = currentTime;
+    this->currentRetry = 0;
     return;
   }
   if (code != 200) {
@@ -73,7 +77,7 @@ void AutoUpdater::loop() {
     break;
   }
   if (filename == NULL) {
-    log_i("can't find firmware on server: %s", this->fotaName);
+    log_i("can't find firmware on server for: %s", this->fotaName);
     return;
   }
 
@@ -115,6 +119,9 @@ int AutoUpdater::downloadAndApplyFirmware(const char *filename) {
     return -1;
   }
 
+  // gzip is not supported on ESP32
+  // there is rom/miniz.h that can potentially used, but
+  // it is stripped version of https://github.com/richgel999/miniz
   int code = this->client->GET();
   if (code != 200) {
     log_i("unable to download firmware: %s code %d", filename, code);
@@ -129,11 +136,13 @@ int AutoUpdater::downloadAndApplyFirmware(const char *filename) {
   }
 
   if (!Update.begin(size)) {
-    log_i("not enought space for firmware upgrade. required: %d", size);
+    log_i("not enough space for firmware upgrade. required: %d", size);
     return -1;
   }
 
-  Update.onProgress(this->onUpdateFunc);
+  if (this->onUpdateFunc) {
+    Update.onProgress(this->onUpdateFunc);
+  }
 
   size_t actuallyWritten = Update.writeStream(this->client->getStream());
   if (actuallyWritten != size) {

@@ -1,6 +1,6 @@
 #include "JsonHandler.h"
 
-JsonHandler::JsonHandler(std::function<int(String, String *)> func, const Uri &uri, HTTPMethod method, const char *username, const char *password) {
+JsonHandler::JsonHandler(std::function<int(String &, String *)> func, const Uri &uri, HTTPMethod method, const char *username, const char *password) {
   this->func = func;
   this->uri = uri.clone();
   this->method = method;
@@ -33,7 +33,8 @@ bool JsonHandler::handle(WebServer &server, HTTPMethod requestMethod, String req
     return true;
   }
   String response;
-  int code = this->func(server.arg("plain"), &response);
+  String body = server.arg("plain");
+  int code = this->func(body, &response);
   server.send(code, "application/json; charset=UTF-8", response);
   return true;
 }

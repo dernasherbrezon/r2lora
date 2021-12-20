@@ -62,7 +62,8 @@ void test_success_start(void) {
 void test_no_request(void) {
   ApiHandler handler(&web, &mock, NULL, NULL);
   String output;
-  int code = handler.handleStart("", &output);
+  String body = "";
+  int code = handler.handleStart(body, &output);
   TEST_ASSERT_EQUAL_INT(200, code);
   assertStatus(&output, "FAILURE");
 }
@@ -87,7 +88,8 @@ void test_begin_failed(void) {
 void test_success_stop_even_if_not_running(void) {
   ApiHandler handler(&web, &mock, NULL, NULL);
   String output;
-  int code = handler.handleStop("", &output);
+  String body = "";
+  int code = handler.handleStop(body, &output);
   TEST_ASSERT_EQUAL_INT(200, code);
   assertStatus(&output, "SUCCESS");
 }
@@ -100,7 +102,8 @@ void test_pull(void) {
   // ignore start response. should be tested in other test cases
   output.clear();
   handler.loop();
-  int code = handler.handlePull("", &output);
+  String body = "";
+  int code = handler.handlePull(body, &output);
   TEST_ASSERT_EQUAL_INT(200, code);
   DynamicJsonDocument json(2048);
   DeserializationError error = deserializeJson(json, output);
@@ -124,7 +127,8 @@ void test_frames_after_stop(void) {
   // ignore start response. should be tested in other test cases
   output.clear();
   handler.loop();
-  int code = handler.handleStop("", &output);
+  String body = "";
+  int code = handler.handleStop(body, &output);
   TEST_ASSERT_EQUAL_INT(200, code);
   DynamicJsonDocument json(2048);
   DeserializationError error = deserializeJson(json, output);
@@ -156,7 +160,8 @@ void test_empty_tx_request(void) {
   ApiHandler handler(&web, &mock, NULL, NULL);
   mock.receiving = false;
   String output;
-  int code = handler.handleTx("", &output);
+  String body = "";
+  int code = handler.handleTx(body, &output);
   TEST_ASSERT_EQUAL_INT(200, code);
   assertStatus(&output, "FAILURE");
 }

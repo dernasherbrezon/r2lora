@@ -11,10 +11,10 @@ class ApiHandler {
   void loop();
 
   // for tests mostly
-  int handleStart(String body, String *output);
-  int handleStop(String body, String *output);
-  int handlePull(String body, String *output);
-  int handleTx(String body, String *output);
+  int handleStart(String &body, String *output);
+  int handleStop(String &body, String *output);
+  int handlePull(String &body, String *output);
+  int handleTx(String &body, String *output);
 
  private:
   void sendFailure(const char *message, String *output);

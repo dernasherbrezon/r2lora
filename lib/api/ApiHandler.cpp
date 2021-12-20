@@ -10,20 +10,20 @@ ApiHandler::ApiHandler(WebServer *web, LoRaModule *lora, const char *apiUsername
   this->web = web;
   this->lora = lora;
 
-  std::function<int(String, String *)> startFunc = std::bind(&ApiHandler::handleStart, this, std::placeholders::_1, std::placeholders::_2);
+  std::function<int(String &, String *)> startFunc = std::bind(&ApiHandler::handleStart, this, std::placeholders::_1, std::placeholders::_2);
   this->web->addHandler(new JsonHandler(startFunc, "/rx/start", HTTP_POST, apiUsername, apiPassword));
 
-  std::function<int(String, String *)> stopFunc = std::bind(&ApiHandler::handleStop, this, std::placeholders::_1, std::placeholders::_2);
+  std::function<int(String &, String *)> stopFunc = std::bind(&ApiHandler::handleStop, this, std::placeholders::_1, std::placeholders::_2);
   this->web->addHandler(new JsonHandler(stopFunc, "/rx/stop", HTTP_POST, apiUsername, apiPassword));
 
-  std::function<int(String, String *)> pullFunc = std::bind(&ApiHandler::handlePull, this, std::placeholders::_1, std::placeholders::_2);
+  std::function<int(String &, String *)> pullFunc = std::bind(&ApiHandler::handlePull, this, std::placeholders::_1, std::placeholders::_2);
   this->web->addHandler(new JsonHandler(pullFunc, "/rx/pull", HTTP_GET, apiUsername, apiPassword));
 
-  std::function<int(String, String *)> txFunc = std::bind(&ApiHandler::handleTx, this, std::placeholders::_1, std::placeholders::_2);
+  std::function<int(String &, String *)> txFunc = std::bind(&ApiHandler::handleTx, this, std::placeholders::_1, std::placeholders::_2);
   this->web->addHandler(new JsonHandler(txFunc, "/tx/send", HTTP_POST, apiUsername, apiPassword));
 }
 
-int ApiHandler::handleStart(String body, String *output) {
+int ApiHandler::handleStart(String &body, String *output) {
   if (body.isEmpty()) {
     this->sendFailure("request is empty", output);
     return 200;
@@ -53,7 +53,7 @@ int ApiHandler::handleStart(String body, String *output) {
   return 200;
 }
 
-int ApiHandler::handleTx(String body, String *output) {
+int ApiHandler::handleTx(String &body, String *output) {
   if (body.isEmpty()) {
     this->sendFailure("request is empty", output);
     return 200;
@@ -88,7 +88,7 @@ int ApiHandler::handleTx(String body, String *output) {
   return 200;
 }
 
-int ApiHandler::handlePull(String body, String *output) {
+int ApiHandler::handlePull(String &body, String *output) {
   DynamicJsonDocument json(2048);
   json["status"] = "SUCCESS";
   JsonArray frames = json.createNestedArray("frames");
@@ -116,7 +116,7 @@ int ApiHandler::handlePull(String body, String *output) {
   return 200;
 }
 
-int ApiHandler::handleStop(String body, String *output) {
+int ApiHandler::handleStop(String &body, String *output) {
   if (!this->receiving) {
     this->sendSuccess(output);
     return 200;

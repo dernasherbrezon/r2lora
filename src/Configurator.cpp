@@ -16,9 +16,11 @@ Configurator::Configurator(WebServer *webServer) {
       "Chip type", "chipType", this->chipIndex, STRING_LEN,
       this->chips->getChipIndices(), this->chips->getChipNames(),
       this->chips->getAll().size(), STRING_LEN);
+  this->autoUpdateParam = new IotWebConfCheckboxParameter("Auto update", "autoUpdate", this->autoUpdate, STRING_LEN, true);
 
   this->allCustomParameters = new IotWebConfParameterGroup("allCustomParameters", LOG_TAG);
   allCustomParameters->addItem(this->chipType);
+  allCustomParameters->addItem(this->autoUpdateParam);
   allCustomParameters->addItem(&this->ntpServerParameter);
   this->conf->addParameterGroup(this->allCustomParameters);
 
@@ -70,6 +72,9 @@ const char *Configurator::getNtpServer() {
 }
 const char *Configurator::getDeviceName() {
   return this->conf->getThingNameParameter()->valueBuffer;
+}
+bool Configurator::isAutoUpdate() {
+  return this->autoUpdateParam->isChecked();
 }
 
 Chip Configurator::getChip() {

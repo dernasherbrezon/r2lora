@@ -90,8 +90,11 @@ void setup() {
     display->setStationName(conf->getDeviceName());
     display->setStatus(getStatus());
     display->update();
-    //FIXME check auto update config
-    updater->init("apt.r2server.ru", 80, 24 * 60 * 60 * 1000, BOARD_NAME);  // update once a day
+    if (conf->isAutoUpdate()) {
+      updater->init("apt.r2server.ru", 80, 24 * 60 * 60 * 1000, BOARD_NAME);  // update once a day
+    } else {
+      updater->deinit();
+    }
   });
   conf->setOnWifiConnectedCallback([] {
     log_i("wifi connected");

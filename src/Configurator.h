@@ -23,6 +23,7 @@ class Configurator {
   const char *getPassword();
   const char *getNtpServer();
   const char *getDeviceName();
+  bool isAutoUpdate();
 
  private:
   DNSServer *dnsServer = NULL;
@@ -31,9 +32,11 @@ class Configurator {
 
   IotWebConfParameterGroup *allCustomParameters = NULL;
   IotWebConfSelectParameter *chipType = NULL;
+  IotWebConfCheckboxParameter *autoUpdateParam = NULL;
 
   char chipIndex[STRING_LEN];
   char ntpServer[STRING_LEN] = "";
+  char autoUpdate[STRING_LEN];
   bool configured = false;
   IotWebConfTextParameter ntpServerParameter = IotWebConfTextParameter("NTP server", "ntpServer", this->ntpServer, STRING_LEN, "pool.ntp.org");
 

@@ -49,7 +49,6 @@ void AutoUpdater::loop() {
   this->currentRetry = 0;
   this->lastModified = this->client->header("Last-Modified");
 
-  const char *filename = NULL;
   int size = this->client->getSize();
   if (size < 0) {
     log_i("invalid Content-Length header. Expected positive length");
@@ -62,6 +61,8 @@ void AutoUpdater::loop() {
     log_e("invalid json received: %s", error.c_str());
     return;
   }
+  const char *filename = NULL;
+  const char *md5Checksum = NULL;
   JsonArray array = json.to<JsonArray>();
   for (size_t i = 0; i < array.size(); i++) {
     JsonObject cur = array[i];
@@ -74,6 +75,7 @@ void AutoUpdater::loop() {
     }
 
     filename = cur["filename"];
+    md5Checksum = cur["md5Checksum"];
     break;
   }
   if (filename == NULL) {
@@ -81,7 +83,7 @@ void AutoUpdater::loop() {
     return;
   }
 
-  code = downloadAndApplyFirmware(filename);
+  code = downloadAndApplyFirmware(filename, md5Checksum);
   this->client->end();
   if (code != 0) {
     return;
@@ -113,7 +115,7 @@ void AutoUpdater::setOnUpdate(std::function<void(size_t, size_t)> func) {
   this->onUpdateFunc = func;
 }
 
-int AutoUpdater::downloadAndApplyFirmware(const char *filename) {
+int AutoUpdater::downloadAndApplyFirmware(const char *filename, const char *md5Checksum) {
   if (!this->client->begin(this->hostname, this->port, filename)) {
     log_e("unable to start downloading");
     return -1;
@@ -143,6 +145,7 @@ int AutoUpdater::downloadAndApplyFirmware(const char *filename) {
   if (this->onUpdateFunc) {
     Update.onProgress(this->onUpdateFunc);
   }
+  Update.setMD5(md5Checksum);
 
   size_t actuallyWritten = Update.writeStream(this->client->getStream());
   if (actuallyWritten != size) {

@@ -30,7 +30,7 @@ class AutoUpdater {
   uint8_t currentRetry = 0;
   const char *fotaName = NULL;
 
-  int downloadAndApplyFirmware(const char *filename);
+  int downloadAndApplyFirmware(const char *filename, const char *md5Checksum);
 };
 
 #endif

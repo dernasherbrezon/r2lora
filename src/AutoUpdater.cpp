@@ -5,8 +5,6 @@
 #include <esp32-hal-log.h>
 #include <time.h>
 
-static const char *FIRMWARE_INDEX = "/fota/r2lora.json";
-
 void AutoUpdater::loop() {
   if (this->client == NULL) {
     return;
@@ -16,7 +14,7 @@ void AutoUpdater::loop() {
     return;
   }
   log_i("time for auto update");
-  if (!this->client->begin(hostname, port, FIRMWARE_INDEX)) {
+  if (!this->client->begin(hostname, port, this->indexFile)) {
     log_e("unable to begin");
     return;
   }
@@ -92,9 +90,10 @@ void AutoUpdater::loop() {
   log_i("update completed. rebooting");
   ESP.restart();
 }
-void AutoUpdater::init(const char *hostname, unsigned short port, unsigned long updateInterval, const char *fotaName) {
+void AutoUpdater::init(const char *hostname, unsigned short port, const char *indexFile, unsigned long updateInterval, const char *fotaName) {
   this->fotaName = fotaName;
   this->updateInterval = updateInterval;
+  this->indexFile = indexFile;
   this->client = new HTTPClient();
   this->client->setTimeout(10000);
   this->client->setConnectTimeout(10000);

@@ -91,7 +91,7 @@ void setup() {
     display->setStatus(getStatus());
     display->update();
     if (conf->isAutoUpdate()) {
-      updater->init("apt.r2server.ru", 80, 24 * 60 * 60 * 1000, BOARD_NAME);  // update once a day
+      updater->init("apt.r2server.ru", 80, "/fota/r2lora.json", 24 * 60 * 60 * 1000, BOARD_NAME);  // update once a day
     } else {
       updater->deinit();
     }

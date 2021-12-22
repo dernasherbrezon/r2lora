@@ -12,7 +12,7 @@
 
 class AutoUpdater {
  public:
-  void init(const char *hostname, unsigned short port, unsigned long updateInterval, const char *fotaName);
+  void init(const char *hostname, unsigned short port, const char *indexFile, unsigned long updateInterval, const char *fotaName);
   void deinit();
   void loop();
 
@@ -22,6 +22,7 @@ class AutoUpdater {
   HTTPClient *client = NULL;
   const char *hostname = NULL;
   unsigned short port = 8080;
+  const char *indexFile = NULL;
   String lastModified;
   std::function<void(size_t, size_t)> onUpdateFunc;
   unsigned long lastUpdateTime = 0;

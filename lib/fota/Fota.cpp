@@ -5,18 +5,18 @@
 #include <esp32-hal-log.h>
 #include <time.h>
 
-void Fota::loop() {
+int Fota::loop() {
   if (this->client == NULL) {
-    return;
+    return FOTA_SUCCESS;
   }
   unsigned long currentTime = millis();
   if (currentTime - this->updateInterval < this->lastUpdateTime) {
-    return;
+    return FOTA_SUCCESS;
   }
   log_i("time for auto update");
   if (!this->client->begin(hostname, port, this->indexFile)) {
     log_e("unable to begin");
-    return;
+    return FOTA_UNKNOWN_ERROR;
   }
   if (!this->lastModified.isEmpty()) {
     this->client->addHeader("If-Modified-Since", this->lastModified);
@@ -26,7 +26,7 @@ void Fota::loop() {
     log_i("no firmware updates");
     this->lastUpdateTime = currentTime;
     this->currentRetry = 0;
-    return;
+    return FOTA_NO_UPDATES;
   }
   if (code != 200) {
     if (this->currentRetry >= this->maxRetry) {
@@ -34,13 +34,13 @@ void Fota::loop() {
       // next update will be on the next day
       this->lastUpdateTime += this->updateInterval;
       this->currentRetry = 0;
-      return;
+      return FOTA_INVALID_SERVER_RESPONSE;
     }
     this->currentRetry++;
     //linear backoff with random jitter
     this->lastUpdateTime += this->currentRetry * 1000 + random(500);
     log_i("invalid response code: %d. retry", code);
-    return;
+    return FOTA_RETRY;
   }
 
   this->lastUpdateTime = currentTime;
@@ -50,14 +50,14 @@ void Fota::loop() {
   int size = this->client->getSize();
   if (size < 0) {
     log_i("invalid Content-Length header. Expected positive length");
-    return;
+    return FOTA_INVALID_SERVER_RESPONSE;
   }
   DynamicJsonDocument json(size);
   DeserializationError error = deserializeJson(json, this->client->getStream());
   this->client->end();
   if (error) {
     log_e("invalid json received: %s", error.c_str());
-    return;
+    return FOTA_INVALID_SERVER_RESPONSE;
   }
   const char *filename = NULL;
   const char *md5Checksum = NULL;
@@ -69,7 +69,7 @@ void Fota::loop() {
     }
     if (strncmp(cur["version"], this->currentVersion, MAX_FIELD_LENGTH) == 0) {
       log_i("no new version for update");
-      return;
+      return FOTA_INVALID_SERVER_RESPONSE;
     }
 
     filename = cur["filename"];
@@ -78,17 +78,18 @@ void Fota::loop() {
   }
   if (filename == NULL) {
     log_i("can't find firmware on server for: %s", this->fotaName);
-    return;
+    return FOTA_NO_UPDATES;
   }
 
   code = downloadAndApplyFirmware(filename, md5Checksum);
   this->client->end();
   if (code != 0) {
-    return;
+    return FOTA_UNKNOWN_ERROR;
   }
 
   log_i("update completed. rebooting");
   ESP.restart();
+  return FOTA_SUCCESS;
 }
 void Fota::init(const char *currentVersion, const char *hostname, unsigned short port, const char *indexFile, unsigned long updateInterval, const char *fotaName) {
   this->currentVersion = currentVersion;

@@ -8,11 +8,17 @@
 
 #define MAX_FIELD_LENGTH 128
 
+#define FOTA_SUCCESS 0
+#define FOTA_UNKNOWN_ERROR -1
+#define FOTA_NO_UPDATES -2
+#define FOTA_INVALID_SERVER_RESPONSE -3
+#define FOTA_RETRY -4
+
 class Fota {
  public:
   void init(const char *currentVersion, const char *hostname, unsigned short port, const char *indexFile, unsigned long updateInterval, const char *fotaName);
   void deinit();
-  void loop();
+  int loop();
 
   void setOnUpdate(std::function<void(size_t, size_t)> func);
 

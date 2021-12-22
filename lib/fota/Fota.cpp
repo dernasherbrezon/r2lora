@@ -1,11 +1,11 @@
-#include "AutoUpdater.h"
+#include "Fota.h"
 
 #include <ArduinoJson.h>
 #include <Update.h>
 #include <esp32-hal-log.h>
 #include <time.h>
 
-void AutoUpdater::loop() {
+void Fota::loop() {
   if (this->client == NULL) {
     return;
   }
@@ -90,7 +90,7 @@ void AutoUpdater::loop() {
   log_i("update completed. rebooting");
   ESP.restart();
 }
-void AutoUpdater::init(const char *currentVersion, const char *hostname, unsigned short port, const char *indexFile, unsigned long updateInterval, const char *fotaName) {
+void Fota::init(const char *currentVersion, const char *hostname, unsigned short port, const char *indexFile, unsigned long updateInterval, const char *fotaName) {
   this->currentVersion = currentVersion;
   this->fotaName = fotaName;
   this->updateInterval = updateInterval;
@@ -101,7 +101,7 @@ void AutoUpdater::init(const char *currentVersion, const char *hostname, unsigne
   this->client->setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
   log_i("auto update initialized");
 }
-void AutoUpdater::deinit() {
+void Fota::deinit() {
   if (this->client == NULL) {
     return;
   }
@@ -111,11 +111,11 @@ void AutoUpdater::deinit() {
   log_i("auto update stopped");
 }
 
-void AutoUpdater::setOnUpdate(std::function<void(size_t, size_t)> func) {
+void Fota::setOnUpdate(std::function<void(size_t, size_t)> func) {
   this->onUpdateFunc = func;
 }
 
-int AutoUpdater::downloadAndApplyFirmware(const char *filename, const char *md5Checksum) {
+int Fota::downloadAndApplyFirmware(const char *filename, const char *md5Checksum) {
   if (!this->client->begin(this->hostname, this->port, filename)) {
     log_e("unable to start downloading");
     return -1;

@@ -1,6 +1,6 @@
 #include <unity.h>
 
-#include "AutoUpdater.h"
+#include "Fota.h"
 
 void test_success() {
   //do nothing

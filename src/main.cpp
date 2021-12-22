@@ -3,7 +3,7 @@
 #include <esp32-hal-log.h>
 
 #include "ApiHandler.h"
-#include "AutoUpdater.h"
+#include "Fota.h"
 #include "Configurator.h"
 #include "Display.h"
 #include "LoRaModule.h"
@@ -18,7 +18,7 @@ LoRaModule *lora;
 WebServer *web;
 ApiHandler *apiHandler;
 Display *display;
-AutoUpdater *updater;
+Fota *updater;
 
 const char *getStatus() {
   // INIT - waiting for AP to initialize
@@ -74,7 +74,7 @@ void setup() {
     display->update();
   });
 
-  updater = new AutoUpdater();
+  updater = new Fota();
   updater->setOnUpdate([](size_t current, size_t total) {
     display->setStatus("UPDATING");
     display->setProgress((uint8_t)((float)current / total));

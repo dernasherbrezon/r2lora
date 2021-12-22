@@ -1,5 +1,5 @@
-#ifndef AutoUpdater_h
-#define AutoUpdater_h
+#ifndef Fota_h
+#define Fota_h
 
 #include <HTTPClient.h>
 #include <stddef.h>
@@ -8,7 +8,7 @@
 
 #define MAX_FIELD_LENGTH 128
 
-class AutoUpdater {
+class Fota {
  public:
   void init(const char *currentVersion, const char *hostname, unsigned short port, const char *indexFile, unsigned long updateInterval, const char *fotaName);
   void deinit();

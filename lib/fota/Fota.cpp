@@ -84,7 +84,7 @@ int Fota::loop() {
   code = downloadAndApplyFirmware(filename, md5Checksum);
   this->client->end();
   if (code != 0) {
-    return FOTA_UNKNOWN_ERROR;
+    return code;
   }
 
   log_i("update completed. rebooting");
@@ -119,7 +119,7 @@ void Fota::setOnUpdate(std::function<void(size_t, size_t)> func) {
 int Fota::downloadAndApplyFirmware(const char *filename, const char *md5Checksum) {
   if (!this->client->begin(this->hostname, this->port, filename)) {
     log_e("unable to start downloading");
-    return -1;
+    return FOTA_UNKNOWN_ERROR;
   }
 
   // gzip is not supported on ESP32
@@ -129,18 +129,18 @@ int Fota::downloadAndApplyFirmware(const char *filename, const char *md5Checksum
   if (code != 200) {
     log_i("unable to download firmware: %s code %d", filename, code);
     this->client->end();
-    return -1;
+    return FOTA_INVALID_SERVER_RESPONSE;
   }
 
   int size = this->client->getSize();
   if (size <= 0) {
     log_i("invalid content length: %d", size);
-    return -1;
+    return FOTA_INVALID_SERVER_RESPONSE;
   }
 
   if (!Update.begin(size)) {
     log_i("not enough space for firmware upgrade. required: %d", size);
-    return -1;
+    return FOTA_INTERNAL_ERROR;
   }
 
   if (this->onUpdateFunc) {
@@ -151,13 +151,13 @@ int Fota::downloadAndApplyFirmware(const char *filename, const char *md5Checksum
   size_t actuallyWritten = Update.writeStream(this->client->getStream());
   if (actuallyWritten != size) {
     log_e("number of bytes written doesn't match the expected: %s", Update.errorString());
-    return -1;
+    return FOTA_UNKNOWN_ERROR;
   }
 
   if (!Update.end()) {
     log_e("unable to complete update: %s", Update.errorString());
-    return -1;
+    return FOTA_INTERNAL_ERROR;
   }
 
-  return 0;
+  return FOTA_SUCCESS;
 }

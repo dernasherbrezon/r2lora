@@ -67,7 +67,7 @@ void AutoUpdater::loop() {
     if (strncmp(cur["name"], this->fotaName, MAX_FIELD_LENGTH) != 0) {
       continue;
     }
-    if (strncmp(cur["version"], FIRMWARE_VERSION, MAX_FIELD_LENGTH) == 0) {
+    if (strncmp(cur["version"], this->currentVersion, MAX_FIELD_LENGTH) == 0) {
       log_i("no new version for update");
       return;
     }
@@ -90,7 +90,8 @@ void AutoUpdater::loop() {
   log_i("update completed. rebooting");
   ESP.restart();
 }
-void AutoUpdater::init(const char *hostname, unsigned short port, const char *indexFile, unsigned long updateInterval, const char *fotaName) {
+void AutoUpdater::init(const char *currentVersion, const char *hostname, unsigned short port, const char *indexFile, unsigned long updateInterval, const char *fotaName) {
+  this->currentVersion = currentVersion;
   this->fotaName = fotaName;
   this->updateInterval = updateInterval;
   this->indexFile = indexFile;

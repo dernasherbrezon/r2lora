@@ -6,13 +6,11 @@
 
 #include <functional>
 
-#include "Version.h"
-
 #define MAX_FIELD_LENGTH 128
 
 class AutoUpdater {
  public:
-  void init(const char *hostname, unsigned short port, const char *indexFile, unsigned long updateInterval, const char *fotaName);
+  void init(const char *currentVersion, const char *hostname, unsigned short port, const char *indexFile, unsigned long updateInterval, const char *fotaName);
   void deinit();
   void loop();
 
@@ -23,6 +21,7 @@ class AutoUpdater {
   const char *hostname = NULL;
   unsigned short port = 8080;
   const char *indexFile = NULL;
+  const char *currentVersion = NULL;
   String lastModified;
   std::function<void(size_t, size_t)> onUpdateFunc;
   unsigned long lastUpdateTime = 0;

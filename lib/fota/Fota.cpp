@@ -146,7 +146,9 @@ int Fota::downloadAndApplyFirmware(const char *filename, const char *md5Checksum
   if (this->onUpdateFunc) {
     Update.onProgress(this->onUpdateFunc);
   }
-  Update.setMD5(md5Checksum);
+  if (!Update.setMD5(md5Checksum)) {
+    return FOTA_INVALID_SERVER_RESPONSE;
+  }
 
   size_t actuallyWritten = Update.writeStream(this->client->getStream());
   if (actuallyWritten != size) {

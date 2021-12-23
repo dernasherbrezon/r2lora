@@ -45,6 +45,24 @@ void test_non_existing_file() {
   TEST_ASSERT_EQUAL(FOTA_INVALID_SERVER_RESPONSE, fota.loop());
 }
 
+void test_no_checksum_field() {
+  Fota fota;
+  fota.init("1.1", "http://apt.r2server.ru", 80, "/fotatest/nochecksum.json", 24 * 60 * 60 * 1000, BOARD_NAME);
+  TEST_ASSERT_EQUAL(FOTA_INVALID_SERVER_RESPONSE, fota.loop());
+}
+
+void test_invalid_checksum() {
+  Fota fota;
+  fota.init("1.1", "http://apt.r2server.ru", 80, "/fotatest/invalidchecksum.json", 24 * 60 * 60 * 1000, BOARD_NAME);
+  TEST_ASSERT_EQUAL(FOTA_INVALID_SERVER_RESPONSE, fota.loop());
+}
+
+void test_success() {
+  Fota fota;
+  fota.init("1.1", "http://apt.r2server.ru", 80, "/fotatest/success.json", 24 * 60 * 60 * 1000, BOARD_NAME);
+  TEST_ASSERT_EQUAL(FOTA_SUCCESS, fota.loop());
+}
+
 void setup() {
   // NOTE!!! Wait for >2 secs
   // if board doesn't support software reset via Serial.DTR/RTS
@@ -62,6 +80,9 @@ void setup() {
   RUN_TEST(test_no_new_version);
   RUN_TEST(test_invalid_json);
   RUN_TEST(test_non_existing_file);
+  RUN_TEST(test_no_checksum_field);
+  RUN_TEST(test_invalid_checksum);
+  RUN_TEST(test_success);
   UNITY_END();
 }
 

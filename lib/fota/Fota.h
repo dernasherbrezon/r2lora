@@ -19,7 +19,7 @@ class Fota {
  public:
   void init(const char *currentVersion, const char *hostname, unsigned short port, const char *indexFile, unsigned long updateInterval, const char *fotaName);
   void deinit();
-  int loop();
+  int loop(bool reboot);
 
   void setOnUpdate(std::function<void(size_t, size_t)> func);
 

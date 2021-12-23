@@ -5,7 +5,7 @@
 #include <esp32-hal-log.h>
 #include <time.h>
 
-int Fota::loop() {
+int Fota::loop(bool reboot) {
   if (this->client == NULL) {
     return FOTA_SUCCESS;
   }
@@ -99,8 +99,12 @@ int Fota::loop() {
     return code;
   }
 
-  log_i("update completed. rebooting");
-  ESP.restart();
+  if (reboot) {
+    log_i("update completed. rebooting");
+    ESP.restart();
+  } else {
+    log_i("update completed");
+  }
   return FOTA_SUCCESS;
 }
 void Fota::init(const char *currentVersion, const char *hostname, unsigned short port, const char *indexFile, unsigned long updateInterval, const char *fotaName) {

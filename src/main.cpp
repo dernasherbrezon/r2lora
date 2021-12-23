@@ -113,5 +113,5 @@ void setup() {
 void loop() {
   conf->loop();
   apiHandler->loop();
-  updater->loop();
+  updater->loop(true);
 }

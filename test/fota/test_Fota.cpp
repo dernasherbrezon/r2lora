@@ -92,6 +92,7 @@ void setup() {
   RUN_TEST(test_no_checksum_field);
   RUN_TEST(test_invalid_checksum);
   RUN_TEST(test_success);
+  RUN_TEST(test_not_initialized);
   UNITY_END();
 }
 

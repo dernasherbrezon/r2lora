@@ -161,11 +161,13 @@ int Fota::downloadAndApplyFirmware(const char *filename, const char *md5Checksum
     Update.onProgress(this->onUpdateFunc);
   }
   if (!Update.setMD5(md5Checksum)) {
+    Update.abort();
     return FOTA_INVALID_SERVER_RESPONSE;
   }
 
   size_t actuallyWritten = Update.writeStream(this->client->getStream());
   if (actuallyWritten != size) {
+    Update.abort();
     log_e("number of bytes written doesn't match the expected: %s", Update.errorString());
     return FOTA_UNKNOWN_ERROR;
   }

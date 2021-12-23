@@ -23,7 +23,7 @@ int Fota::loop() {
   }
   int code = this->client->GET();
   if (code < 0) {
-    log_e("unable to connect to; %s", this->hostname);
+    log_e("unable to connect to: %s", this->hostname);
     this->lastUpdateTime = currentTime;
     this->currentRetry = 0;
     return FOTA_UNKNOWN_ERROR;

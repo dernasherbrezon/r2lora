@@ -11,55 +11,55 @@
 #define WIFI_PASSWORD ""
 #endif
 
-#ifndef BOARD_NAME
-#define BOARD_NAME "native"
+#ifndef ARDUINO_VARIANT
+#define ARDUINO_VARIANT "native"
 #endif
 
 void test_invalid_hostname() {
   Fota fota;
-  fota.init("1.0", "255.255.255.255", 80, "/fotatest/success.json", 24 * 60 * 60 * 1000, BOARD_NAME);
+  fota.init("1.0", "255.255.255.255", 80, "/fotatest/success.json", 24 * 60 * 60 * 1000, ARDUINO_VARIANT);
   TEST_ASSERT_EQUAL(FOTA_UNKNOWN_ERROR, fota.loop());
 }
 
 void test_unknown_indexfile() {
   Fota fota;
-  fota.init("1.0", "apt.r2server.ru", 80, "/fotatest/nonexistingfile.json", 24 * 60 * 60 * 1000, BOARD_NAME);
+  fota.init("1.0", "apt.r2server.ru", 80, "/fotatest/nonexistingfile.json", 24 * 60 * 60 * 1000, ARDUINO_VARIANT);
   TEST_ASSERT_EQUAL(FOTA_NO_UPDATES, fota.loop());
 }
 
 void test_no_new_version() {
   Fota fota;
-  fota.init("1.1", "apt.r2server.ru", 80, "/fotatest/success.json", 24 * 60 * 60 * 1000, BOARD_NAME);
+  fota.init("1.1", "apt.r2server.ru", 80, "/fotatest/success.json", 24 * 60 * 60 * 1000, ARDUINO_VARIANT);
   TEST_ASSERT_EQUAL(FOTA_NO_UPDATES, fota.loop());
 }
 
 void test_invalid_json() {
   Fota fota;
-  fota.init("1.1", "apt.r2server.ru", 80, "/fotatest/invalidjson.json", 24 * 60 * 60 * 1000, BOARD_NAME);
+  fota.init("1.1", "apt.r2server.ru", 80, "/fotatest/invalidjson.json", 24 * 60 * 60 * 1000, ARDUINO_VARIANT);
   TEST_ASSERT_EQUAL(FOTA_INVALID_SERVER_RESPONSE, fota.loop());
 }
 
 void test_non_existing_file() {
   Fota fota;
-  fota.init("1.1", "apt.r2server.ru", 80, "/fotatest/missingfile.json", 24 * 60 * 60 * 1000, BOARD_NAME);
+  fota.init("1.1", "apt.r2server.ru", 80, "/fotatest/missingfile.json", 24 * 60 * 60 * 1000, ARDUINO_VARIANT);
   TEST_ASSERT_EQUAL(FOTA_INVALID_SERVER_RESPONSE, fota.loop());
 }
 
 void test_no_checksum_field() {
   Fota fota;
-  fota.init("1.1", "apt.r2server.ru", 80, "/fotatest/nochecksum.json", 24 * 60 * 60 * 1000, BOARD_NAME);
+  fota.init("1.1", "apt.r2server.ru", 80, "/fotatest/nochecksum.json", 24 * 60 * 60 * 1000, ARDUINO_VARIANT);
   TEST_ASSERT_EQUAL(FOTA_INVALID_SERVER_RESPONSE, fota.loop());
 }
 
 void test_invalid_checksum() {
   Fota fota;
-  fota.init("1.1", "apt.r2server.ru", 80, "/fotatest/invalidchecksum.json", 24 * 60 * 60 * 1000, BOARD_NAME);
+  fota.init("1.1", "apt.r2server.ru", 80, "/fotatest/invalidchecksum.json", 24 * 60 * 60 * 1000, ARDUINO_VARIANT);
   TEST_ASSERT_EQUAL(FOTA_INVALID_SERVER_RESPONSE, fota.loop());
 }
 
 void test_success() {
   Fota fota;
-  fota.init("1.1", "apt.r2server.ru", 80, "/fotatest/success.json", 24 * 60 * 60 * 1000, BOARD_NAME);
+  fota.init("1.1", "apt.r2server.ru", 80, "/fotatest/success.json", 24 * 60 * 60 * 1000, ARDUINO_VARIANT);
   TEST_ASSERT_EQUAL(FOTA_SUCCESS, fota.loop());
 }
 

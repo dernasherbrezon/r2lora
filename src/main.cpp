@@ -9,8 +9,8 @@
 #include "LoRaModule.h"
 #include "time.h"
 
-#ifndef BOARD_NAME
-#define BOARD_NAME "native"
+#ifndef ARDUINO_VARIANT
+#define ARDUINO_VARIANT "native"
 #endif
 
 Configurator *conf;
@@ -91,7 +91,7 @@ void setup() {
     display->setStatus(getStatus());
     display->update();
     if (conf->isAutoUpdate()) {
-      updater->init(FIRMWARE_VERSION, "apt.r2server.ru", 80, "/fota/r2lora.json", 24 * 60 * 60 * 1000, BOARD_NAME);  // update once a day
+      updater->init(FIRMWARE_VERSION, "apt.r2server.ru", 80, "/fota/r2lora.json", 24 * 60 * 60 * 1000, ARDUINO_VARIANT);  // update once a day
     } else {
       updater->deinit();
     }

@@ -22,6 +22,12 @@ int Fota::loop() {
     this->client->addHeader("If-Modified-Since", this->lastModified);
   }
   int code = this->client->GET();
+  if (code < 0) {
+    log_e("unable to connect to; %s", this->hostname);
+    this->lastUpdateTime = currentTime;
+    this->currentRetry = 0;
+    return FOTA_UNKNOWN_ERROR;
+  }
   if (code == 304 || code == 404) {
     log_i("no firmware updates");
     this->lastUpdateTime = currentTime;
@@ -96,6 +102,8 @@ void Fota::init(const char *currentVersion, const char *hostname, unsigned short
   this->fotaName = fotaName;
   this->updateInterval = updateInterval;
   this->indexFile = indexFile;
+  this->hostname = hostname;
+  this->port = port;
   this->client = new HTTPClient();
   this->client->setTimeout(10000);
   this->client->setConnectTimeout(10000);

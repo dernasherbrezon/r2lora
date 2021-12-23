@@ -10,7 +10,7 @@ int Fota::loop(bool reboot) {
     return FOTA_NO_UPDATES;
   }
   unsigned long currentTime = millis();
-  if (currentTime - this->updateInterval < this->lastUpdateTime) {
+  if (currentTime - this->lastUpdateTime < this->updateInterval) {
     return FOTA_NO_UPDATES;
   }
   log_i("time for auto update");
@@ -21,6 +21,7 @@ int Fota::loop(bool reboot) {
   if (!this->lastModified.isEmpty()) {
     this->client->addHeader("If-Modified-Since", this->lastModified);
   }
+  this->client->collectHeaders((const char **)this->collectHeaders, this->collectHeadersLength);
   int code = this->client->GET();
   if (code < 0) {
     log_e("unable to connect to: %s", this->hostname);

@@ -36,6 +36,8 @@ class Fota {
   uint8_t maxRetry = 3;
   uint8_t currentRetry = 0;
   const char *fotaName = NULL;
+  const char collectHeaders[1][30] = {"Last-Modified"};
+  const size_t collectHeadersLength = 1;
 
   int downloadAndApplyFirmware(const char *filename, const char *md5Checksum);
 };

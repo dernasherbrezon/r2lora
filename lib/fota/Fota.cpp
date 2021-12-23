@@ -10,7 +10,7 @@ int Fota::loop(bool reboot) {
     return FOTA_NO_UPDATES;
   }
   unsigned long currentTime = millis();
-  if (currentTime - this->lastUpdateTime < this->updateInterval) {
+  if (currentTime < this->nextUpdateTime) {
     return FOTA_NO_UPDATES;
   }
   log_i("time for auto update");
@@ -21,17 +21,18 @@ int Fota::loop(bool reboot) {
   if (!this->lastModified.isEmpty()) {
     this->client->addHeader("If-Modified-Since", this->lastModified);
   }
-  this->client->collectHeaders((const char **)this->collectHeaders, this->collectHeadersLength);
+  const char *headers[] = {"Last-Modified"};
+  this->client->collectHeaders(headers, 1);
   int code = this->client->GET();
   if (code < 0) {
     log_e("unable to connect to: %s", this->hostname);
-    this->lastUpdateTime = currentTime;
+    this->nextUpdateTime = currentTime + this->updateInterval;
     this->currentRetry = 0;
     return FOTA_UNKNOWN_ERROR;
   }
   if (code == 304 || code == 404) {
     log_i("no firmware updates");
-    this->lastUpdateTime = currentTime;
+    this->nextUpdateTime = currentTime + this->updateInterval;
     this->currentRetry = 0;
     return FOTA_NO_UPDATES;
   }
@@ -39,18 +40,18 @@ int Fota::loop(bool reboot) {
     if (this->currentRetry >= this->maxRetry) {
       log_i("invalid response code: %d. no more retry", code);
       // next update will be on the next day
-      this->lastUpdateTime += this->updateInterval;
+      this->nextUpdateTime = currentTime + this->updateInterval;
       this->currentRetry = 0;
       return FOTA_INVALID_SERVER_RESPONSE;
     }
     this->currentRetry++;
     //linear backoff with random jitter
-    this->lastUpdateTime += this->currentRetry * 1000 + random(500);
+    this->nextUpdateTime += this->currentRetry * 1000 + random(500);
     log_i("invalid response code: %d. retry", code);
     return FOTA_RETRY;
   }
 
-  this->lastUpdateTime = currentTime;
+  this->nextUpdateTime = currentTime + this->updateInterval;
   this->currentRetry = 0;
   this->lastModified = this->client->header("Last-Modified");
 

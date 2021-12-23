@@ -67,15 +67,17 @@ int Fota::loop() {
   }
   const char *filename = NULL;
   const char *md5Checksum = NULL;
-  JsonArray array = json.to<JsonArray>();
+  JsonArray array = json.as<JsonArray>();
   for (size_t i = 0; i < array.size(); i++) {
     JsonObject cur = array[i];
-    if (strncmp(cur["name"], this->fotaName, MAX_FIELD_LENGTH) != 0) {
+    const char *curName = cur["name"];
+    if (strncmp(curName, this->fotaName, MAX_FIELD_LENGTH) != 0) {
       continue;
     }
-    if (strncmp(cur["version"], this->currentVersion, MAX_FIELD_LENGTH) == 0) {
+    const char *curVersion = cur["version"];
+    if (strncmp(curVersion, this->currentVersion, MAX_FIELD_LENGTH) == 0) {
       log_i("no new version for update");
-      return FOTA_INVALID_SERVER_RESPONSE;
+      return FOTA_NO_UPDATES;
     }
 
     filename = cur["filename"];
@@ -85,6 +87,10 @@ int Fota::loop() {
   if (filename == NULL) {
     log_i("can't find firmware on server for: %s", this->fotaName);
     return FOTA_NO_UPDATES;
+  }
+  if (md5Checksum == NULL) {
+    log_i("md5checksum is missing for: %s", this->fotaName);
+    return FOTA_INVALID_SERVER_RESPONSE;
   }
 
   code = downloadAndApplyFirmware(filename, md5Checksum);

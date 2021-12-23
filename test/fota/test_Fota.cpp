@@ -64,6 +64,12 @@ void test_success() {
     log_i("progress: %d/%d", cur, total);
   });
   TEST_ASSERT_EQUAL(FOTA_SUCCESS, fota.loop(false));
+  TEST_ASSERT_EQUAL(FOTA_NO_UPDATES, fota.loop(false));
+}
+
+void test_not_initialized() {
+  Fota fota;
+  TEST_ASSERT_EQUAL(FOTA_NO_UPDATES, fota.loop(false));
 }
 
 void setup() {

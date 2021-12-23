@@ -7,11 +7,11 @@
 
 int Fota::loop(bool reboot) {
   if (this->client == NULL) {
-    return FOTA_SUCCESS;
+    return FOTA_NO_UPDATES;
   }
   unsigned long currentTime = millis();
   if (currentTime - this->updateInterval < this->lastUpdateTime) {
-    return FOTA_SUCCESS;
+    return FOTA_NO_UPDATES;
   }
   log_i("time for auto update");
   if (!this->client->begin(hostname, port, this->indexFile)) {

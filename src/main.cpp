@@ -3,9 +3,9 @@
 #include <esp32-hal-log.h>
 
 #include "ApiHandler.h"
-#include "Fota.h"
 #include "Configurator.h"
 #include "Display.h"
+#include "Fota.h"
 #include "LoRaModule.h"
 #include "time.h"
 
@@ -61,8 +61,6 @@ void setup() {
 
   display = new Display();
   display->init();
-  display->setStatus(getStatus());
-  display->update();
 
   lora = new LoRaModule();
   lora->setOnRxStartedCallback([] {
@@ -108,6 +106,9 @@ void setup() {
   web->on("/status", HTTP_GET, []() {
     handleStatus();
   });
+
+  display->setStatus(getStatus());
+  display->update();
 }
 
 void loop() {

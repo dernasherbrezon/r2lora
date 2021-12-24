@@ -3,12 +3,10 @@
 
 #include "Version.h"
 
-static const char *LOG_TAG = "r2lora";
-
 Configurator::Configurator(WebServer *webServer) {
   this->chips = new Chips();
   this->dnsServer = new DNSServer();
-  this->conf = new IotWebConf(LOG_TAG, dnsServer, webServer, "", FIRMWARE_VERSION);
+  this->conf = new IotWebConf("r2lora", dnsServer, webServer, "", FIRMWARE_VERSION);
   this->conf->getThingNameParameter()->label = "Device name";
   this->conf->getApPasswordParameter()->label = "Device password";
 
@@ -16,11 +14,10 @@ Configurator::Configurator(WebServer *webServer) {
       "Chip type", "chipType", this->chipIndex, STRING_LEN,
       this->chips->getChipIndices(), this->chips->getChipNames(),
       this->chips->getAll().size(), STRING_LEN);
-  this->autoUpdateParam = new IotWebConfCheckboxParameter("Auto update", "autoUpdate", this->autoUpdate, STRING_LEN, true);
 
-  this->allCustomParameters = new IotWebConfParameterGroup("allCustomParameters", LOG_TAG);
+  this->allCustomParameters = new IotWebConfParameterGroup("allCustomParameters", "r2lora");
   allCustomParameters->addItem(this->chipType);
-  allCustomParameters->addItem(this->autoUpdateParam);
+  allCustomParameters->addItem(&this->autoUpdateParam);
   allCustomParameters->addItem(&this->ntpServerParameter);
   this->conf->addParameterGroup(this->allCustomParameters);
 
@@ -29,6 +26,7 @@ Configurator::Configurator(WebServer *webServer) {
   this->conf->setFormValidator(func);
 
   this->configured = this->conf->init();
+  log_i("configurator was initialized. config status: %d", this->configured);
   webServer->on("/", [this] {
     this->conf->handleConfig();
   });
@@ -74,7 +72,7 @@ const char *Configurator::getDeviceName() {
   return this->conf->getThingNameParameter()->valueBuffer;
 }
 bool Configurator::isAutoUpdate() {
-  return this->autoUpdateParam->isChecked();
+  return this->autoUpdateParam.isChecked();
 }
 
 Chip Configurator::getChip() {

@@ -109,6 +109,7 @@ void setup() {
 
   display->setStatus(getStatus());
   display->update();
+  log_i("setup completed");
 }
 
 void loop() {

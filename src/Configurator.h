@@ -32,14 +32,13 @@ class Configurator {
 
   IotWebConfParameterGroup *allCustomParameters = NULL;
   IotWebConfSelectParameter *chipType = NULL;
-  IotWebConfCheckboxParameter *autoUpdateParam = NULL;
 
-  char chipIndex[STRING_LEN];
+  char chipIndex[STRING_LEN] = "0";
   char ntpServer[STRING_LEN] = "";
-  char autoUpdate[STRING_LEN];
+  char autoUpdate[STRING_LEN] = "selected";
   bool configured = false;
   IotWebConfTextParameter ntpServerParameter = IotWebConfTextParameter("NTP server", "ntpServer", this->ntpServer, STRING_LEN, "pool.ntp.org");
-
+  IotWebConfCheckboxParameter autoUpdateParam = IotWebConfCheckboxParameter("Auto update", "autoUpdate", this->autoUpdate, STRING_LEN, true);
   bool formValidator(iotwebconf::WebRequestWrapper *web);
 };
 

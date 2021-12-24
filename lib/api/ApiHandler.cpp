@@ -21,6 +21,7 @@ ApiHandler::ApiHandler(WebServer *web, LoRaModule *lora, const char *apiUsername
 
   std::function<int(String &, String *)> txFunc = std::bind(&ApiHandler::handleTx, this, std::placeholders::_1, std::placeholders::_2);
   this->web->addHandler(new JsonHandler(txFunc, "/tx/send", HTTP_POST, apiUsername, apiPassword));
+  log_i("api handler was initialized");
 }
 
 int ApiHandler::handleStart(String &body, String *output) {

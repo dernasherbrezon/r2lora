@@ -45,6 +45,10 @@ void Configurator::setOnConfiguredCallback(std::function<void()> func) {
   });
 }
 
+bool Configurator::isConfigured() {
+  return this->configured;
+}
+
 void Configurator::setOnWifiConnectedCallback(std::function<void()> func) {
   this->conf->setWifiConnectionCallback(func);
 }

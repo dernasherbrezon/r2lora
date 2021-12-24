@@ -24,6 +24,7 @@ class Configurator {
   const char *getNtpServer();
   const char *getDeviceName();
   bool isAutoUpdate();
+  bool isConfigured();
 
  private:
   DNSServer *dnsServer = NULL;

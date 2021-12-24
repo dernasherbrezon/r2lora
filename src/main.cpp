@@ -21,14 +21,14 @@ Display *display;
 Fota *updater;
 
 const char *getStatus() {
-  // INIT - waiting for AP to initialize
+  // SETUP - waiting for AP to initialize
   // CONNECTING - connecting to WiFi
   // RECEIVING - lora is listening for data
   // IDLE - module is waiting for rx/tx requests
   if (conf->getState() == iotwebconf::NetworkState::Connecting) {
     return "CONNECTING";
-  } else if (conf->getState() == iotwebconf::NetworkState::ApMode) {
-    return "INIT";
+  } else if (!conf->isConfigured() || conf->getState() == iotwebconf::NetworkState::ApMode) {
+    return "SETUP";
   } else if (lora->isReceivingData()) {
     return "RECEIVING";
   } else {
@@ -108,6 +108,9 @@ void setup() {
   });
 
   display->setStatus(getStatus());
+  if (!conf->isConfigured()) {
+    display->setIpAddress("192.168.4.1");
+  }
   display->update();
   log_i("setup completed");
 }

@@ -60,11 +60,12 @@ int Fota::loop(bool reboot) {
     log_i("invalid Content-Length header. Expected positive length");
     return FOTA_INVALID_SERVER_RESPONSE;
   }
-  DynamicJsonDocument json(size);
+  // arduinojson need some more memory than raw json
+  DynamicJsonDocument json(2 * size);
   DeserializationError error = deserializeJson(json, this->client->getStream());
   this->client->end();
   if (error) {
-    log_e("invalid json received: %s", error.c_str());
+    log_e("unable to read fota index: %s", error.c_str());
     return FOTA_INVALID_SERVER_RESPONSE;
   }
   const char *filename = NULL;
@@ -84,6 +85,7 @@ int Fota::loop(bool reboot) {
 
     filename = cur["filename"];
     md5Checksum = cur["md5Checksum"];
+    log_i("found new version: %s", curVersion);
     break;
   }
   if (filename == NULL) {
@@ -155,11 +157,13 @@ int Fota::downloadAndApplyFirmware(const char *filename, const char *md5Checksum
   int size = this->client->getSize();
   if (size <= 0) {
     log_i("invalid content length: %d", size);
+    this->client->end();
     return FOTA_INVALID_SERVER_RESPONSE;
   }
 
   if (!Update.begin(size)) {
     log_i("not enough space for firmware upgrade. required: %d", size);
+    this->client->end();
     return FOTA_INTERNAL_ERROR;
   }
 
@@ -168,15 +172,20 @@ int Fota::downloadAndApplyFirmware(const char *filename, const char *md5Checksum
   }
   if (!Update.setMD5(md5Checksum)) {
     Update.abort();
+    this->client->end();
     return FOTA_INVALID_SERVER_RESPONSE;
   }
+
+  log_i("downloading new firmware: %d bytes", size);
 
   size_t actuallyWritten = Update.writeStream(this->client->getStream());
   if (actuallyWritten != size) {
     Update.abort();
     log_e("number of bytes written doesn't match the expected: %s", Update.errorString());
+    this->client->end();
     return FOTA_UNKNOWN_ERROR;
   }
+  this->client->end();
 
   if (!Update.end()) {
     log_e("unable to complete update: %s", Update.errorString());

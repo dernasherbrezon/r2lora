@@ -75,7 +75,7 @@ void setup() {
   updater = new Fota();
   updater->setOnUpdate([](size_t current, size_t total) {
     display->setStatus("UPDATING");
-    display->setProgress((uint8_t)((float)current / total));
+    display->setProgress((uint8_t)((float)current * 100 / total));
     display->update();
   });
 

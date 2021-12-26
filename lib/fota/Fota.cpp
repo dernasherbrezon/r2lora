@@ -181,7 +181,7 @@ int Fota::downloadAndApplyFirmware(const char *filename, const char *md5Checksum
   size_t actuallyWritten = Update.writeStream(this->client->getStream());
   if (actuallyWritten != size) {
     Update.abort();
-    log_e("number of bytes written doesn't match the expected: %s", Update.errorString());
+    log_e("number of bytes written %zu doesn't match the expected %zu: %s", actuallyWritten, size, Update.errorString());
     this->client->end();
     return FOTA_UNKNOWN_ERROR;
   }

@@ -30,6 +30,7 @@ Configurator::Configurator(WebServer *webServer) {
   webServer->on("/", [this] {
     this->conf->handleConfig();
   });
+  // override not found page
   webServer->onNotFound([this]() {
     this->conf->handleNotFound();
   });

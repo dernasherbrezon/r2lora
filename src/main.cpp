@@ -58,6 +58,9 @@ void handleStatus() {
 void setup() {
   log_i("starting");
   web = new WebServer(80);
+  web->onNotFound([]() {
+    log_i("page not found: %s", web->uri().c_str());
+  });
 
   display = new Display();
   display->init();

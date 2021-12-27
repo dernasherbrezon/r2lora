@@ -115,6 +115,10 @@ int Fota::loop(bool reboot) {
   return FOTA_SUCCESS;
 }
 void Fota::init(const char *currentVersion, const char *hostname, unsigned short port, const char *indexFile, unsigned long updateInterval, const char *fotaName) {
+  if (this->client != NULL) {
+    log_e("fota was already initialized");
+    return;
+  }
   this->currentVersion = currentVersion;
   this->fotaName = fotaName;
   this->updateInterval = updateInterval;
@@ -128,7 +132,7 @@ void Fota::init(const char *currentVersion, const char *hostname, unsigned short
   this->compressedBuffer = (uint8_t *)malloc(sizeof(uint8_t) * SPI_FLASH_SEC_SIZE);
   this->uncompressedBuffer = (uint8_t *)malloc(sizeof(uint8_t) * UNCOMPRESSED_BUFFER_LENGTH);
 
-  log_i("auto update initialized");
+  log_i("fota initialized");
 }
 void Fota::deinit() {
   if (this->client == NULL) {
@@ -145,7 +149,7 @@ void Fota::deinit() {
     free(this->uncompressedBuffer);
     this->uncompressedBuffer = NULL;
   }
-  log_i("auto update stopped");
+  log_i("fota stopped");
 }
 
 void Fota::setOnUpdate(std::function<void(size_t, size_t)> func) {
@@ -231,6 +235,11 @@ int Fota::writeGzippedStream(Stream &data, int compressedSize) {
         bytesToRead = remainingCompressed;
       }
       actuallyRead = data.readBytes(this->compressedBuffer, bytesToRead);
+      if (actuallyRead <= 0) {
+        log_e("unable to read %zu: %zu", bytesToRead, actuallyRead);
+        result = -1;
+        break;
+      }
       //reset pointer to the input
       nextCompressedBuffer = this->compressedBuffer;
       remainingCompressed -= actuallyRead;
@@ -271,4 +280,8 @@ int Fota::writeGzippedStream(Stream &data, int compressedSize) {
     }
   }
   return result;
+}
+
+Fota::~Fota() {
+  this->deinit();
 }

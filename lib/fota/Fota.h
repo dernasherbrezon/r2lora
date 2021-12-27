@@ -17,6 +17,7 @@
 
 class Fota {
  public:
+  ~Fota();
   void init(const char *currentVersion, const char *hostname, unsigned short port, const char *indexFile, unsigned long updateInterval, const char *fotaName);
   void deinit();
   int loop(bool reboot);
@@ -38,7 +39,7 @@ class Fota {
   const char *fotaName = NULL;
   uint8_t *compressedBuffer = NULL;
   uint8_t *uncompressedBuffer = NULL;
-  
+
   int downloadAndApplyFirmware(const char *filename, const char *md5Checksum);
   int writeGzippedStream(Stream &data, int compressedSize);
 };

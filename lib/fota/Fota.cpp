@@ -125,6 +125,9 @@ void Fota::init(const char *currentVersion, const char *hostname, unsigned short
   this->client->setTimeout(10000);
   this->client->setConnectTimeout(10000);
   this->client->setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
+  this->compressedBuffer = (uint8_t *)malloc(sizeof(uint8_t) * SPI_FLASH_SEC_SIZE);
+  this->uncompressedBuffer = (uint8_t *)malloc(sizeof(uint8_t) * UNCOMPRESSED_BUFFER_LENGTH);
+
   log_i("auto update initialized");
 }
 void Fota::deinit() {
@@ -134,6 +137,14 @@ void Fota::deinit() {
   this->client->end();
   delete this->client;
   this->client = NULL;
+  if (this->compressedBuffer != NULL) {
+    free(this->compressedBuffer);
+    this->compressedBuffer = NULL;
+  }
+  if (this->uncompressedBuffer != NULL) {
+    free(this->uncompressedBuffer);
+    this->uncompressedBuffer = NULL;
+  }
   log_i("auto update stopped");
 }
 
@@ -171,6 +182,7 @@ int Fota::downloadAndApplyFirmware(const char *filename, const char *md5Checksum
     Update.onProgress(this->onUpdateFunc);
   }
   if (!Update.setMD5(md5Checksum)) {
+    log_i("invalid md5sum configured on the server: %s", md5Checksum);
     Update.abort();
     this->client->end();
     return FOTA_INVALID_SERVER_RESPONSE;
@@ -197,10 +209,8 @@ int Fota::downloadAndApplyFirmware(const char *filename, const char *md5Checksum
 int Fota::writeGzippedStream(Stream &data, int compressedSize) {
   tinfl_decompressor inflator;
   tinfl_init(&inflator);
-  uint8_t compressedBuffer[SPI_FLASH_SEC_SIZE];
-  uint8_t *nextCompressedBuffer = compressedBuffer;
-  uint8_t uncompressedBuffer[UNCOMPRESSED_BUFFER_LENGTH];
-  uint8_t *nextUncompressedBuffer = uncompressedBuffer;
+  uint8_t *nextCompressedBuffer = this->compressedBuffer;
+  uint8_t *nextUncompressedBuffer = this->uncompressedBuffer;
   size_t availableOut = UNCOMPRESSED_BUFFER_LENGTH;
   int status = TINFL_STATUS_NEEDS_MORE_INPUT;
   size_t remainingCompressed = compressedSize;
@@ -220,9 +230,9 @@ int Fota::writeGzippedStream(Stream &data, int compressedSize) {
       } else {
         bytesToRead = remainingCompressed;
       }
-      actuallyRead = data.readBytes(compressedBuffer, bytesToRead);
+      actuallyRead = data.readBytes(this->compressedBuffer, bytesToRead);
       //reset pointer to the input
-      nextCompressedBuffer = compressedBuffer;
+      nextCompressedBuffer = this->compressedBuffer;
       remainingCompressed -= actuallyRead;
     }
 
@@ -231,7 +241,7 @@ int Fota::writeGzippedStream(Stream &data, int compressedSize) {
     size_t inBytes = actuallyRead;
     size_t outBytes = availableOut;
     status = tinfl_decompress(&inflator, (const mz_uint8 *)nextCompressedBuffer, &inBytes,
-                              uncompressedBuffer, nextUncompressedBuffer, &outBytes,
+                              this->uncompressedBuffer, nextUncompressedBuffer, &outBytes,
                               flags);
     actuallyRead -= inBytes;
     nextCompressedBuffer = nextCompressedBuffer + inBytes;
@@ -241,14 +251,14 @@ int Fota::writeGzippedStream(Stream &data, int compressedSize) {
 
     if ((status <= TINFL_STATUS_DONE) || (availableOut <= 0)) {
       size_t bytesInTheOutput = UNCOMPRESSED_BUFFER_LENGTH - availableOut;
-      size_t actuallyWrote = Update.write(uncompressedBuffer, bytesInTheOutput);
+      size_t actuallyWrote = Update.write(this->uncompressedBuffer, bytesInTheOutput);
       if (actuallyWrote != bytesInTheOutput) {
         log_e("unable to write %zu bytes: %s", bytesInTheOutput, Update.errorString());
         result = -1;
         break;
       }
       //reset pointer to the output
-      nextUncompressedBuffer = uncompressedBuffer;
+      nextUncompressedBuffer = this->uncompressedBuffer;
       availableOut = UNCOMPRESSED_BUFFER_LENGTH;
     }
 

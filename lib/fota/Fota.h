@@ -36,7 +36,9 @@ class Fota {
   uint8_t maxRetry = 3;
   uint8_t currentRetry = 0;
   const char *fotaName = NULL;
-
+  uint8_t *compressedBuffer = NULL;
+  uint8_t *uncompressedBuffer = NULL;
+  
   int downloadAndApplyFirmware(const char *filename, const char *md5Checksum);
   int writeGzippedStream(Stream &data, int compressedSize);
 };

@@ -38,6 +38,7 @@ class Fota {
   const char *fotaName = NULL;
 
   int downloadAndApplyFirmware(const char *filename, const char *md5Checksum);
+  int writeGzippedStream(Stream &data, int compressedSize);
 };
 
 #endif

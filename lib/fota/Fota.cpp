@@ -3,7 +3,10 @@
 #include <ArduinoJson.h>
 #include <Update.h>
 #include <esp32-hal-log.h>
+#include <rom/miniz.h>
 #include <time.h>
+
+#define UNCOMPRESSED_BUFFER_LENGTH 32768
 
 int Fota::loop(bool reboot) {
   if (this->client == NULL) {
@@ -144,9 +147,6 @@ int Fota::downloadAndApplyFirmware(const char *filename, const char *md5Checksum
     return FOTA_UNKNOWN_ERROR;
   }
 
-  // gzip is not supported on ESP32
-  // there is rom/miniz.h that can potentially used, but
-  // it is stripped version of https://github.com/richgel999/miniz
   int code = this->client->GET();
   if (code != 200) {
     log_i("unable to download firmware: %s code %d", filename, code);
@@ -178,9 +178,8 @@ int Fota::downloadAndApplyFirmware(const char *filename, const char *md5Checksum
 
   log_i("downloading new firmware: %d bytes", size);
 
-  size_t actuallyWritten = Update.writeStream(this->client->getStream());
-  if (actuallyWritten != size) {
-    log_e("number of bytes written %zu doesn't match the expected %d: %s", actuallyWritten, size, Update.errorString());
+  code = writeGzippedStream(this->client->getStream(), size);
+  if (code != 0) {
     Update.abort();
     this->client->end();
     return FOTA_UNKNOWN_ERROR;
@@ -193,4 +192,73 @@ int Fota::downloadAndApplyFirmware(const char *filename, const char *md5Checksum
   }
 
   return FOTA_SUCCESS;
+}
+
+int Fota::writeGzippedStream(Stream &data, int compressedSize) {
+  tinfl_decompressor inflator;
+  tinfl_init(&inflator);
+  uint8_t compressedBuffer[SPI_FLASH_SEC_SIZE];
+  uint8_t *nextCompressedBuffer = compressedBuffer;
+  uint8_t uncompressedBuffer[UNCOMPRESSED_BUFFER_LENGTH];
+  uint8_t *nextUncompressedBuffer = uncompressedBuffer;
+  size_t availableOut = UNCOMPRESSED_BUFFER_LENGTH;
+  int status = TINFL_STATUS_NEEDS_MORE_INPUT;
+  size_t remainingCompressed = compressedSize;
+  size_t actuallyRead = 0;
+  int result = 0;
+  while (true) {
+    int flags = TINFL_FLAG_PARSE_ZLIB_HEADER;
+    if (remainingCompressed > SPI_FLASH_SEC_SIZE) {
+      flags |= TINFL_FLAG_HAS_MORE_INPUT;
+    }
+
+    // read next batch only when the previous input was processed
+    if (actuallyRead <= 0) {
+      size_t bytesToRead;
+      if (remainingCompressed > SPI_FLASH_SEC_SIZE) {
+        bytesToRead = SPI_FLASH_SEC_SIZE;
+      } else {
+        bytesToRead = remainingCompressed;
+      }
+      actuallyRead = data.readBytes(compressedBuffer, bytesToRead);
+      //reset pointer to the input
+      nextCompressedBuffer = compressedBuffer;
+      remainingCompressed -= actuallyRead;
+    }
+
+    // inBytes and outBytes will contain of how many input bytes were actually processed
+    // and how many output bytes were actually produced
+    size_t inBytes = actuallyRead;
+    size_t outBytes = availableOut;
+    status = tinfl_decompress(&inflator, (const mz_uint8 *)nextCompressedBuffer, &inBytes,
+                              uncompressedBuffer, nextUncompressedBuffer, &outBytes,
+                              flags);
+    actuallyRead -= inBytes;
+    nextCompressedBuffer = nextCompressedBuffer + inBytes;
+
+    availableOut -= outBytes;
+    nextUncompressedBuffer = nextUncompressedBuffer + outBytes;
+
+    if ((status <= TINFL_STATUS_DONE) || (availableOut <= 0)) {
+      size_t bytesInTheOutput = UNCOMPRESSED_BUFFER_LENGTH - availableOut;
+      size_t actuallyWrote = Update.write(uncompressedBuffer, bytesInTheOutput);
+      if (actuallyWrote != bytesInTheOutput) {
+        log_e("unable to write %zu bytes: %s", bytesInTheOutput, Update.errorString());
+        result = -1;
+        break;
+      }
+      //reset pointer to the output
+      nextUncompressedBuffer = uncompressedBuffer;
+      availableOut = UNCOMPRESSED_BUFFER_LENGTH;
+    }
+
+    if (status <= TINFL_STATUS_DONE) {
+      if (status != TINFL_STATUS_DONE) {
+        result = status;
+        log_e("unable to decompress: %d", status);
+      }
+      break;
+    }
+  }
+  return result;
 }

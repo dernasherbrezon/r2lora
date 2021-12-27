@@ -40,7 +40,7 @@ class Fota {
   const char *fotaName = NULL;
   uint8_t *compressedBuffer = NULL;
   uint8_t *uncompressedBuffer = NULL;
-  tinfl_decompressor inflator;
+  tinfl_decompressor *inflator = NULL;
 
   int downloadAndApplyFirmware(const char *filename, const char *md5Checksum, size_t uncompressedSize);
   int writeGzippedStream(Stream &data, int compressedSize);

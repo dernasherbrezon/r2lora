@@ -136,7 +136,8 @@ void Fota::init(const char *currentVersion, const char *hostname, unsigned short
   this->client->setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
   this->compressedBuffer = (uint8_t *)malloc(sizeof(uint8_t) * SPI_FLASH_SEC_SIZE);
   this->uncompressedBuffer = (uint8_t *)malloc(sizeof(uint8_t) * UNCOMPRESSED_BUFFER_LENGTH);
-  tinfl_init(&this->inflator);
+  this->inflator = (tinfl_decompressor *)malloc(sizeof(tinfl_decompressor));
+  tinfl_init(this->inflator);
 
   log_i("fota initialized");
 }
@@ -154,6 +155,10 @@ void Fota::deinit() {
   if (this->uncompressedBuffer != NULL) {
     free(this->uncompressedBuffer);
     this->uncompressedBuffer = NULL;
+  }
+  if (this->inflator != NULL) {
+    free(this->inflator);
+    this->inflator = NULL;
   }
   log_i("fota stopped");
 }
@@ -253,7 +258,7 @@ int Fota::writeGzippedStream(Stream &data, int compressedSize) {
     // and how many output bytes were actually produced
     size_t inBytes = actuallyRead;
     size_t outBytes = availableOut;
-    status = tinfl_decompress(&inflator, (const mz_uint8 *)nextCompressedBuffer, &inBytes,
+    status = tinfl_decompress(inflator, (const mz_uint8 *)nextCompressedBuffer, &inBytes,
                               this->uncompressedBuffer, nextUncompressedBuffer, &outBytes,
                               flags);
     actuallyRead -= inBytes;

@@ -2,6 +2,7 @@
 #define Fota_h
 
 #include <HTTPClient.h>
+#include <rom/miniz.h>
 #include <stddef.h>
 
 #include <functional>
@@ -39,6 +40,7 @@ class Fota {
   const char *fotaName = NULL;
   uint8_t *compressedBuffer = NULL;
   uint8_t *uncompressedBuffer = NULL;
+  tinfl_decompressor inflator;
 
   int downloadAndApplyFirmware(const char *filename, const char *md5Checksum, size_t uncompressedSize);
   int writeGzippedStream(Stream &data, int compressedSize);

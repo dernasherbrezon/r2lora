@@ -3,7 +3,6 @@
 #include <ArduinoJson.h>
 #include <Update.h>
 #include <esp32-hal-log.h>
-#include <rom/miniz.h>
 #include <time.h>
 
 #define UNCOMPRESSED_BUFFER_LENGTH 32768
@@ -137,6 +136,7 @@ void Fota::init(const char *currentVersion, const char *hostname, unsigned short
   this->client->setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
   this->compressedBuffer = (uint8_t *)malloc(sizeof(uint8_t) * SPI_FLASH_SEC_SIZE);
   this->uncompressedBuffer = (uint8_t *)malloc(sizeof(uint8_t) * UNCOMPRESSED_BUFFER_LENGTH);
+  tinfl_init(&this->inflator);
 
   log_i("fota initialized");
 }
@@ -217,8 +217,6 @@ int Fota::downloadAndApplyFirmware(const char *filename, const char *md5Checksum
 }
 
 int Fota::writeGzippedStream(Stream &data, int compressedSize) {
-  tinfl_decompressor inflator;
-  tinfl_init(&inflator);
   uint8_t *nextCompressedBuffer = this->compressedBuffer;
   uint8_t *nextUncompressedBuffer = this->uncompressedBuffer;
   size_t availableOut = UNCOMPRESSED_BUFFER_LENGTH;

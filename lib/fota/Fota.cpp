@@ -73,6 +73,7 @@ int Fota::loop(bool reboot) {
   }
   const char *filename = NULL;
   const char *md5Checksum = NULL;
+  size_t uncompressedSize = 0;
   JsonArray array = json.as<JsonArray>();
   for (size_t i = 0; i < array.size(); i++) {
     JsonObject cur = array[i];
@@ -88,6 +89,7 @@ int Fota::loop(bool reboot) {
 
     filename = cur["filename"];
     md5Checksum = cur["md5Checksum"];
+    uncompressedSize = cur["size"];
     log_i("found new version: %s", curVersion);
     break;
   }
@@ -99,8 +101,12 @@ int Fota::loop(bool reboot) {
     log_i("md5checksum is missing for: %s", this->fotaName);
     return FOTA_INVALID_SERVER_RESPONSE;
   }
+  if (uncompressedSize == 0) {
+    log_i("invalid uncompressed size returned: %zu", uncompressedSize);
+    return FOTA_INVALID_SERVER_RESPONSE;
+  }
 
-  code = downloadAndApplyFirmware(filename, md5Checksum);
+  code = downloadAndApplyFirmware(filename, md5Checksum, uncompressedSize);
   this->client->end();
   if (code != 0) {
     return code;
@@ -156,7 +162,7 @@ void Fota::setOnUpdate(std::function<void(size_t, size_t)> func) {
   this->onUpdateFunc = func;
 }
 
-int Fota::downloadAndApplyFirmware(const char *filename, const char *md5Checksum) {
+int Fota::downloadAndApplyFirmware(const char *filename, const char *md5Checksum, size_t uncompressedSize) {
   if (!this->client->begin(this->hostname, this->port, filename)) {
     log_e("unable to start downloading");
     return FOTA_UNKNOWN_ERROR;
@@ -176,8 +182,8 @@ int Fota::downloadAndApplyFirmware(const char *filename, const char *md5Checksum
     return FOTA_INVALID_SERVER_RESPONSE;
   }
 
-  if (!Update.begin(size)) {
-    log_i("not enough space for firmware upgrade. required: %d", size);
+  if (!Update.begin(uncompressedSize)) {
+    log_i("not enough space for firmware upgrade. required: %d", uncompressedSize);
     this->client->end();
     return FOTA_INTERNAL_ERROR;
   }
@@ -216,7 +222,7 @@ int Fota::writeGzippedStream(Stream &data, int compressedSize) {
   uint8_t *nextCompressedBuffer = this->compressedBuffer;
   uint8_t *nextUncompressedBuffer = this->uncompressedBuffer;
   size_t availableOut = UNCOMPRESSED_BUFFER_LENGTH;
-  int status = TINFL_STATUS_NEEDS_MORE_INPUT;
+  tinfl_status status = TINFL_STATUS_NEEDS_MORE_INPUT;
   size_t remainingCompressed = compressedSize;
   size_t actuallyRead = 0;
   int result = 0;
@@ -227,7 +233,7 @@ int Fota::writeGzippedStream(Stream &data, int compressedSize) {
     }
 
     // read next batch only when the previous input was processed
-    if (actuallyRead <= 0) {
+    if (actuallyRead == 0) {
       size_t bytesToRead;
       if (remainingCompressed > SPI_FLASH_SEC_SIZE) {
         bytesToRead = SPI_FLASH_SEC_SIZE;
@@ -235,7 +241,7 @@ int Fota::writeGzippedStream(Stream &data, int compressedSize) {
         bytesToRead = remainingCompressed;
       }
       actuallyRead = data.readBytes(this->compressedBuffer, bytesToRead);
-      if (actuallyRead <= 0) {
+      if (actuallyRead == 0) {
         log_e("unable to read %zu: %zu", bytesToRead, actuallyRead);
         result = -1;
         break;

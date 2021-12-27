@@ -101,7 +101,7 @@ int Fota::loop(bool reboot) {
     return FOTA_INVALID_SERVER_RESPONSE;
   }
   if (uncompressedSize == 0) {
-    log_i("invalid uncompressed size returned: %zu", uncompressedSize);
+    log_i("invalid uncompressed size received: %zu", uncompressedSize);
     return FOTA_INVALID_SERVER_RESPONSE;
   }
 
@@ -137,7 +137,6 @@ void Fota::init(const char *currentVersion, const char *hostname, unsigned short
   this->compressedBuffer = (uint8_t *)malloc(sizeof(uint8_t) * SPI_FLASH_SEC_SIZE);
   this->uncompressedBuffer = (uint8_t *)malloc(sizeof(uint8_t) * UNCOMPRESSED_BUFFER_LENGTH);
   this->inflator = (tinfl_decompressor *)malloc(sizeof(tinfl_decompressor));
-  tinfl_init(this->inflator);
 
   log_i("fota initialized");
 }
@@ -222,9 +221,10 @@ int Fota::downloadAndApplyFirmware(const char *filename, const char *md5Checksum
 }
 
 int Fota::writeGzippedStream(Stream &data, int compressedSize) {
+  tinfl_init(this->inflator);
   uint8_t *nextCompressedBuffer = this->compressedBuffer;
   uint8_t *nextUncompressedBuffer = this->uncompressedBuffer;
-  size_t availableOut = UNCOMPRESSED_BUFFER_LENGTH;
+  ssize_t availableOut = UNCOMPRESSED_BUFFER_LENGTH;
   tinfl_status status = TINFL_STATUS_NEEDS_MORE_INPUT;
   size_t remainingCompressed = compressedSize;
   size_t actuallyRead = 0;
@@ -237,19 +237,31 @@ int Fota::writeGzippedStream(Stream &data, int compressedSize) {
 
     // read next batch only when the previous input was processed
     if (actuallyRead == 0) {
-      size_t bytesToRead;
+      ssize_t bytesToRead;
       if (remainingCompressed > SPI_FLASH_SEC_SIZE) {
         bytesToRead = SPI_FLASH_SEC_SIZE;
       } else {
         bytesToRead = remainingCompressed;
       }
-      actuallyRead = data.readBytes(this->compressedBuffer, bytesToRead);
+      //reset pointer to the input
+      nextCompressedBuffer = this->compressedBuffer;
+      // readBytes can return 2 bytes or 3 which will fail tinfl_decompress
+      // try as many as input buffer
+      while (bytesToRead > 0) {
+        size_t batchRead = data.readBytes(nextCompressedBuffer, bytesToRead);
+        if (batchRead == 0) {
+          break;
+        }
+        nextCompressedBuffer += batchRead;
+        bytesToRead -= batchRead;
+        actuallyRead += batchRead;
+      }
       if (actuallyRead == 0) {
         log_e("unable to read %zu: %zu", bytesToRead, actuallyRead);
         result = -1;
         break;
       }
-      //reset pointer to the input
+      //reset pointer once again so that decompress starts from the beginning
       nextCompressedBuffer = this->compressedBuffer;
       remainingCompressed -= actuallyRead;
     }

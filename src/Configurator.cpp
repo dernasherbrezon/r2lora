@@ -1,12 +1,11 @@
 
 #include "Configurator.h"
 
-#include "Version.h"
-
 Configurator::Configurator(WebServer *webServer) {
   this->chips = new Chips();
   this->dnsServer = new DNSServer();
-  this->conf = new IotWebConf("r2lora", dnsServer, webServer, "", FIRMWARE_VERSION);
+  // config version is not the same as application version
+  this->conf = new IotWebConf("r2lora", dnsServer, webServer, "", "conf-1.0");
   this->conf->getThingNameParameter()->label = "Device name";
   this->conf->getApPasswordParameter()->label = "Device password";
 

@@ -1,13 +1,17 @@
+#include <ApiHandler.h>
 #include <ArduinoJson.h>
+#include <Fota.h>
+#include <LoRaModule.h>
 #include <WiFiServer.h>
 #include <esp32-hal-log.h>
+#include <time.h>
 
-#include "ApiHandler.h"
 #include "Configurator.h"
 #include "Display.h"
-#include "Fota.h"
-#include "LoRaModule.h"
-#include "time.h"
+
+#ifndef FIRMWARE_VERSION
+#define FIRMWARE_VERSION "1.0"
+#endif
 
 #ifndef ARDUINO_VARIANT
 #define ARDUINO_VARIANT "native"
@@ -56,6 +60,7 @@ void handleStatus() {
 }
 
 void setup() {
+  Serial.begin(115200);
   log_i("starting");
   web = new WebServer(80);
   web->onNotFound([]() {

@@ -1,10 +1,10 @@
 #ifndef Chips_h
 #define Chips_h
 
-#include <vector>
-#include <cstddef>
+#include <Chip.h>
 
-#include "Chip.h"
+#include <cstddef>
+#include <vector>
 
 class Chips {
  public:

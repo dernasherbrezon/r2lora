@@ -2,42 +2,42 @@
     {
         "name": "ttgo-lora32-v1",
         "version": "1.1",
-        "filename": "/fota/ttgo-lora32-v1-1.1.bin.zz",
+        "filename": "/fotatest/ttgo-lora32-v1-1.1.bin.zz",
         "size": 203984,
         "md5Checksum": "6c0931332848636087c599a1ad9c0600"
     },
     {
         "name": "ttgo-t-beam",
         "version": "1.1",
-        "filename": "/fota/ttgo-t-beam-1.1.bin.zz",
+        "filename": "/fotatest/ttgo-t-beam-1.1.bin.zz",
         "size": 203984,
         "md5Checksum": "6c0931332848636087c599a1ad9c0600"
     },
     {
         "name": "heltec_wifi_lora_32",
         "version": "1.1",
-        "filename": "/fota/heltec_wifi_lora_32-1.1.bin.zz",
+        "filename": "/fotatest/heltec_wifi_lora_32-1.1.bin.zz",
         "size": 203984,
         "md5Checksum": "6c0931332848636087c599a1ad9c0600"
     },
     {
         "name": "heltec_wifi_lora_32_V2",
         "version": "1.1",
-        "filename": "/fota/heltec_wifi_lora_32_V2-1.1.bin.zz",
+        "filename": "/fotatest/heltec_wifi_lora_32_V2-1.1.bin.zz",
         "size": 203984,
         "md5Checksum": "6c0931332848636087c599a1ad9c0600"
     },
     {
         "name": "ttgo-lora32-v21",
         "version": "1.1",
-        "filename": "/fota/ttgo-lora32-v21-1.1.bin.zz",
+        "filename": "/fotatest/ttgo-lora32-v21-1.1.bin.zz",
         "size": 203984,
         "md5Checksum": "6c0931332848636087c599a1ad9c0600"
     },
     {
         "name": "ttgo-lora32-v2",
         "version": "1.1",
-        "filename": "/fota/ttgo-lora32-v2-1.1.bin.zz",
+        "filename": "/fotatest/ttgo-lora32-v2-1.1.bin.zz",
         "size": 267328,
         "md5Checksum": "6c0931332848636087c599a1ad9c0600"
     }

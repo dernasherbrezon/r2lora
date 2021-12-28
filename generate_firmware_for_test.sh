@@ -28,7 +28,7 @@ do
     echo "{" >> ${SUCCESS_JSON}
     echo "\"name\": \"${newname}\"," >> ${SUCCESS_JSON}
     echo "\"version\": \"${VERSION}\"," >> ${SUCCESS_JSON}
-    echo "\"filename\": \"/fota/${dstFilename}\"," >> ${SUCCESS_JSON}
+    echo "\"filename\": \"/fotatest/${dstFilename}\"," >> ${SUCCESS_JSON}
     echo "\"size\": ${size}," >> ${SUCCESS_JSON}
     echo "\"md5Checksum\": \"${md5}\"" >> ${SUCCESS_JSON}
     echo "}," >> ${SUCCESS_JSON}
@@ -36,7 +36,7 @@ do
     echo "{" >> ${INVALID_ZLIB_JZON}
     echo "\"name\": \"${newname}\"," >> ${INVALID_ZLIB_JZON}
     echo "\"version\": \"${VERSION}\"," >> ${INVALID_ZLIB_JZON}
-    echo "\"filename\": \"/fota/${invalidZlibFileName}\"," >> ${INVALID_ZLIB_JZON}
+    echo "\"filename\": \"/fotatest/${invalidZlibFileName}\"," >> ${INVALID_ZLIB_JZON}
     echo "\"size\": ${invalidZlibsize}," >> ${INVALID_ZLIB_JZON}
     echo "\"md5Checksum\": \"${md5}\"" >> ${INVALID_ZLIB_JZON}
     echo "}," >> ${INVALID_ZLIB_JZON}
@@ -44,7 +44,7 @@ do
     echo "{" >> ${MISMATCHED_CHECKSUM_JSON}
     echo "\"name\": \"${newname}\"," >> ${MISMATCHED_CHECKSUM_JSON}
     echo "\"version\": \"${VERSION}\"," >> ${MISMATCHED_CHECKSUM_JSON}
-    echo "\"filename\": \"/fota/${dstFilename}\"," >> ${MISMATCHED_CHECKSUM_JSON}
+    echo "\"filename\": \"/fotatest/${dstFilename}\"," >> ${MISMATCHED_CHECKSUM_JSON}
     echo "\"size\": ${size}," >> ${MISMATCHED_CHECKSUM_JSON}
     echo "\"md5Checksum\": \"6c0931332848636087c599a1ad9c0600\"" >> ${MISMATCHED_CHECKSUM_JSON}
     echo "}," >> ${MISMATCHED_CHECKSUM_JSON}

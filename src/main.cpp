@@ -61,7 +61,7 @@ void handleStatus() {
 
 void setup() {
   Serial.begin(115200);
-  log_i("starting");
+  log_i("starting. firmware version: %s", FIRMWARE_VERSION);
   web = new WebServer(80);
   web->onNotFound([]() {
     log_i("page not found: %s", web->uri().c_str());

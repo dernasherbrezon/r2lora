@@ -18,7 +18,7 @@ int Fota::loop(bool reboot) {
   if (currentTime < this->nextUpdateTime) {
     return FOTA_NO_UPDATES;
   }
-  log_i("time for auto update");
+  log_i("checking new version");
   if (!this->client->begin(hostname, port, this->indexFile)) {
     log_e("unable to begin");
     return FOTA_UNKNOWN_ERROR;
@@ -85,7 +85,7 @@ int Fota::loop(bool reboot) {
     }
     const char *curVersion = cur["version"];
     if (strncmp(curVersion, this->currentVersion, MAX_FIELD_LENGTH) == 0) {
-      log_i("no new version for update");
+      log_i("no new version found");
       return FOTA_NO_UPDATES;
     }
 

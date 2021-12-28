@@ -7,6 +7,12 @@ INVALID_ZLIB_JZON="./test/resources/fota/invalidzlib.json"
 MISMATCHED_CHECKSUM_JSON="./test/resources/fota/mismatchedchecksum.json"
 VERSION="1.1"
 
+invalidZlibFileName="invalidzlib-${VERSION}.bin.zz"
+invalidZlibFile="./test/resources/fota/${invalidZlibFileName}"
+echo "not a zlib" >> ${invalidZlibFile}
+invalidZlibsize=$(wc -c ${invalidZlibFile} | awk '{print $1}')
+
+
 echo "[" >> ${SUCCESS_JSON}
 echo "[" >> ${INVALID_ZLIB_JZON}
 echo "[" >> ${MISMATCHED_CHECKSUM_JSON}
@@ -15,7 +21,7 @@ find .pio/build -path "*/firmware.bin" -print0 | while read -d $'\0' file
 do
     newname=$(echo ${file} | cut -d '/' -f 3)
     md5=($(md5sum ${file}))
-    size=$(wc -c ${file} | cut -d ' ' -f 3)
+    size=$(wc -c ${file} | awk '{print $1}')
     dstFilename=${newname}-${VERSION}.bin.zz
     pigz --zlib ${file}
     cp ${file}.zz ./test/resources/fota/${dstFilename}
@@ -27,16 +33,11 @@ do
     echo "\"md5Checksum\": \"${md5}\"" >> ${SUCCESS_JSON}
     echo "}," >> ${SUCCESS_JSON}
 
-    invalidZlibFileName="invalidzlib-${VERSION}.bin.zz"
-    invalidZlibFile="./test/resources/fota/${invalidZlibFileName}"
-    echo "not a zlib" >> ${invalidZlibFile}
-    size=$(wc -c ${invalidZlibFile} | cut -d ' ' -f 3)
-
     echo "{" >> ${INVALID_ZLIB_JZON}
     echo "\"name\": \"${newname}\"," >> ${INVALID_ZLIB_JZON}
     echo "\"version\": \"${VERSION}\"," >> ${INVALID_ZLIB_JZON}
     echo "\"filename\": \"/fota/${invalidZlibFileName}\"," >> ${INVALID_ZLIB_JZON}
-    echo "\"size\": ${size}," >> ${INVALID_ZLIB_JZON}
+    echo "\"size\": ${invalidZlibsize}," >> ${INVALID_ZLIB_JZON}
     echo "\"md5Checksum\": \"${md5}\"" >> ${INVALID_ZLIB_JZON}
     echo "}," >> ${INVALID_ZLIB_JZON}
 

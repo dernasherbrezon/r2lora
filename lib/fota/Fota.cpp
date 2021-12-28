@@ -5,7 +5,10 @@
 #include <esp32-hal-log.h>
 #include <time.h>
 
-#define UNCOMPRESSED_BUFFER_LENGTH 16384
+// can't be less than 32768
+// the output buffer must be a power of 2 size that is at least as large as the LZ dictionary (typically 32KB)
+// https://github.com/richgel999/miniz/issues/1
+#define UNCOMPRESSED_BUFFER_LENGTH 32768
 
 int Fota::loop(bool reboot) {
   if (this->client == NULL) {
@@ -226,9 +229,9 @@ int Fota::writeGzippedStream(Stream &data, int compressedSize) {
   uint8_t *nextUncompressedBuffer = this->uncompressedBuffer;
   ssize_t availableOut = UNCOMPRESSED_BUFFER_LENGTH;
   tinfl_status status = TINFL_STATUS_NEEDS_MORE_INPUT;
-  size_t remainingCompressed = compressedSize;
+  int remainingCompressed = compressedSize;
   size_t actuallyRead = 0;
-  int result = 0;
+  int result = FOTA_SUCCESS;
   while (true) {
     int flags = TINFL_FLAG_PARSE_ZLIB_HEADER;
     // read next batch only when the previous input was processed
@@ -242,7 +245,7 @@ int Fota::writeGzippedStream(Stream &data, int compressedSize) {
       actuallyRead = data.readBytes(this->compressedBuffer, bytesToRead);
       if (actuallyRead == 0) {
         log_e("unable to read %zu: %zu", bytesToRead, actuallyRead);
-        result = -1;
+        result = FOTA_INVALID_SERVER_RESPONSE;
         break;
       }
       //reset pointer so that decompress starts from the beginning
@@ -272,7 +275,7 @@ int Fota::writeGzippedStream(Stream &data, int compressedSize) {
       size_t actuallyWrote = Update.write(this->uncompressedBuffer, bytesInTheOutput);
       if (actuallyWrote != bytesInTheOutput) {
         log_e("unable to write %zu bytes: %s", bytesInTheOutput, Update.errorString());
-        result = -1;
+        result = FOTA_UNKNOWN_ERROR;
         break;
       }
       //reset pointer to the output
@@ -282,7 +285,7 @@ int Fota::writeGzippedStream(Stream &data, int compressedSize) {
 
     if (status <= TINFL_STATUS_DONE) {
       if (status != TINFL_STATUS_DONE) {
-        result = status;
+        result = FOTA_INVALID_ZLIB_FILE;
         log_e("unable to decompress: %d", status);
       }
       break;

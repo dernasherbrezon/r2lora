@@ -15,6 +15,7 @@
 #define FOTA_INVALID_SERVER_RESPONSE -3
 #define FOTA_RETRY -4
 #define FOTA_INTERNAL_ERROR -5
+#define FOTA_INVALID_ZLIB_FILE -6
 
 class Fota {
  public:

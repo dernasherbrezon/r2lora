@@ -59,8 +59,17 @@ void test_invalid_checksum() {
   TEST_ASSERT_EQUAL(FOTA_INVALID_SERVER_RESPONSE, fota.loop(false));
 }
 
+void test_mismatched_checksum() {
+  Fota fota;
+  fota.init("1.0", hostname, 80, "/fotatest/mismatchedchecksum.json", 24 * 60 * 60 * 1000, ARDUINO_VARIANT);
+  TEST_ASSERT_EQUAL(FOTA_INVALID_SERVER_RESPONSE, fota.loop(false));
+}
+
 void test_success() {
   Fota fota;
+  // test no-op deinit before init
+  fota.deinit();
+  fota.deinit();
   fota.init("1.0", hostname, 80, "/fotatest/success.json", 24 * 60 * 60 * 1000, ARDUINO_VARIANT);
   fota.setOnUpdate([](size_t cur, size_t total) {
     log_i("progress: %d/%d", cur, total);
@@ -72,6 +81,12 @@ void test_success() {
 void test_not_initialized() {
   Fota fota;
   TEST_ASSERT_EQUAL(FOTA_NO_UPDATES, fota.loop(false));
+}
+
+void test_invalid_zlib_file() {
+  Fota fota;
+  fota.init("1.0", hostname, 80, "/fotatest/invalidzlib.json", 24 * 60 * 60 * 1000, ARDUINO_VARIANT);
+  TEST_ASSERT_EQUAL(FOTA_INVALID_SERVER_RESPONSE, fota.loop(false));
 }
 
 void setup() {
@@ -95,6 +110,8 @@ void setup() {
   RUN_TEST(test_invalid_checksum);
   RUN_TEST(test_success);
   RUN_TEST(test_not_initialized);
+  RUN_TEST(test_invalid_zlib_file);
+  RUN_TEST(test_mismatched_checksum);
   UNITY_END();
 }
 

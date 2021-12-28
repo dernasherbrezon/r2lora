@@ -208,10 +208,10 @@ int Fota::downloadAndApplyFirmware(const char *filename, const char *md5Checksum
   log_i("downloading new firmware: %d bytes", size);
 
   code = writeGzippedStream(this->client->getStream(), size);
-  if (code != 0) {
+  if (code != FOTA_SUCCESS) {
     Update.abort();
     this->client->end();
-    return FOTA_UNKNOWN_ERROR;
+    return code;
   }
   this->client->end();
 

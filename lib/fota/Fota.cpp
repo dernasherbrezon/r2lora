@@ -5,7 +5,7 @@
 #include <esp32-hal-log.h>
 #include <time.h>
 
-#define UNCOMPRESSED_BUFFER_LENGTH 32768
+#define UNCOMPRESSED_BUFFER_LENGTH 16384
 
 int Fota::loop(bool reboot) {
   if (this->client == NULL) {
@@ -89,7 +89,7 @@ int Fota::loop(bool reboot) {
     filename = cur["filename"];
     md5Checksum = cur["md5Checksum"];
     uncompressedSize = cur["size"];
-    log_i("found new version: %s", curVersion);
+    log_i("new version available: %s", curVersion);
     break;
   }
   if (filename == NULL) {
@@ -231,10 +231,6 @@ int Fota::writeGzippedStream(Stream &data, int compressedSize) {
   int result = 0;
   while (true) {
     int flags = TINFL_FLAG_PARSE_ZLIB_HEADER;
-    if (remainingCompressed > SPI_FLASH_SEC_SIZE) {
-      flags |= TINFL_FLAG_HAS_MORE_INPUT;
-    }
-
     // read next batch only when the previous input was processed
     if (actuallyRead == 0) {
       ssize_t bytesToRead;
@@ -243,27 +239,19 @@ int Fota::writeGzippedStream(Stream &data, int compressedSize) {
       } else {
         bytesToRead = remainingCompressed;
       }
-      //reset pointer to the input
-      nextCompressedBuffer = this->compressedBuffer;
-      // readBytes can return 2 bytes or 3 which will fail tinfl_decompress
-      // try as many as input buffer
-      while (bytesToRead > 0) {
-        size_t batchRead = data.readBytes(nextCompressedBuffer, bytesToRead);
-        if (batchRead == 0) {
-          break;
-        }
-        nextCompressedBuffer += batchRead;
-        bytesToRead -= batchRead;
-        actuallyRead += batchRead;
-      }
+      actuallyRead = data.readBytes(this->compressedBuffer, bytesToRead);
       if (actuallyRead == 0) {
         log_e("unable to read %zu: %zu", bytesToRead, actuallyRead);
         result = -1;
         break;
       }
-      //reset pointer once again so that decompress starts from the beginning
+      //reset pointer so that decompress starts from the beginning
       nextCompressedBuffer = this->compressedBuffer;
       remainingCompressed -= actuallyRead;
+    }
+
+    if (remainingCompressed > 0) {
+      flags |= TINFL_FLAG_HAS_MORE_INPUT;
     }
 
     // inBytes and outBytes will contain of how many input bytes were actually processed

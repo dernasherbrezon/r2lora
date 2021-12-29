@@ -23,6 +23,7 @@ do
     echo "\"name\": \"${newname}\"," >> ${FILE_INDEX}
     echo "\"version\": \"${VERSION}\"," >> ${FILE_INDEX}
     echo "\"filename\": \"/fota/${dstFilename}\"," >> ${FILE_INDEX}
+    echo "\"size\": ${size}," >> ${FILE_INDEX}
     echo "\"md5Checksum\": \"${md5}\"" >> ${FILE_INDEX}
     echo "}," >> ${FILE_INDEX}
     cp ${file} ${dstFilename}

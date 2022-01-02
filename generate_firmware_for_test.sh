@@ -26,7 +26,7 @@ do
     pigz --zlib ${file}
     cp ${file}.zz ./test/resources/fota/${dstFilename}
     echo "{" >> ${SUCCESS_JSON}
-    echo "\"name\": \"${newname}\"," >> ${SUCCESS_JSON}
+    echo "\"board\": \"${newname}\"," >> ${SUCCESS_JSON}
     echo "\"version\": \"${VERSION}\"," >> ${SUCCESS_JSON}
     echo "\"filename\": \"/fotatest/${dstFilename}\"," >> ${SUCCESS_JSON}
     echo "\"size\": ${size}," >> ${SUCCESS_JSON}
@@ -34,7 +34,7 @@ do
     echo "}," >> ${SUCCESS_JSON}
 
     echo "{" >> ${INVALID_ZLIB_JZON}
-    echo "\"name\": \"${newname}\"," >> ${INVALID_ZLIB_JZON}
+    echo "\"board\": \"${newname}\"," >> ${INVALID_ZLIB_JZON}
     echo "\"version\": \"${VERSION}\"," >> ${INVALID_ZLIB_JZON}
     echo "\"filename\": \"/fotatest/${invalidZlibFileName}\"," >> ${INVALID_ZLIB_JZON}
     echo "\"size\": ${invalidZlibsize}," >> ${INVALID_ZLIB_JZON}
@@ -42,7 +42,7 @@ do
     echo "}," >> ${INVALID_ZLIB_JZON}
 
     echo "{" >> ${MISMATCHED_CHECKSUM_JSON}
-    echo "\"name\": \"${newname}\"," >> ${MISMATCHED_CHECKSUM_JSON}
+    echo "\"board\": \"${newname}\"," >> ${MISMATCHED_CHECKSUM_JSON}
     echo "\"version\": \"${VERSION}\"," >> ${MISMATCHED_CHECKSUM_JSON}
     echo "\"filename\": \"/fotatest/${dstFilename}\"," >> ${MISMATCHED_CHECKSUM_JSON}
     echo "\"size\": ${size}," >> ${MISMATCHED_CHECKSUM_JSON}

@@ -79,7 +79,7 @@ int Fota::loop(bool reboot) {
   JsonArray array = json.as<JsonArray>();
   for (size_t i = 0; i < array.size(); i++) {
     JsonObject cur = array[i];
-    const char *curName = cur["name"];
+    const char *curName = cur["board"];
     if (strncmp(curName, this->fotaName, MAX_FIELD_LENGTH) != 0) {
       continue;
     }

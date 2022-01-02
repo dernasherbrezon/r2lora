@@ -1,41 +1,41 @@
 [
     {
-        "name": "ttgo-lora32-v2",
+        "board": "ttgo-lora32-v2",
         "version": "1.1",
         "filename": "/fotatest/nonexistingfile-1.1.bin",
         "size": 203984,
         "md5Checksum": "6c0931332848636087c599a1ad9c06a8"
     },
     {
-        "name": "ttgo-lora32-v1",
+        "board": "ttgo-lora32-v1",
         "version": "1.1",
         "filename": "/fotatest/nonexistingfile-1.1.bin",
         "size": 203984,
         "md5Checksum": "6c0931332848636087c599a1ad9c06a8"
     },
     {
-        "name": "ttgo-lora32-v21",
+        "board": "ttgo-lora32-v21",
         "version": "1.1",
         "filename": "/fotatest/nonexistingfile-1.1.bin",
         "size": 203984,
         "md5Checksum": "6c0931332848636087c599a1ad9c06a8"
     },
     {
-        "name": "heltec_wifi_lora_32",
+        "board": "heltec_wifi_lora_32",
         "version": "1.1",
         "filename": "/fotatest/nonexistingfile-1.1.bin",
         "size": 203984,
         "md5Checksum": "6c0931332848636087c599a1ad9c06a8"
     },
     {
-        "name": "heltec_wifi_lora_32_V2",
+        "board": "heltec_wifi_lora_32_V2",
         "version": "1.1",
         "filename": "/fotatest/nonexistingfile-1.1.bin",
         "size": 203984,
         "md5Checksum": "2cf356186ea3aa56c2d335ae31fa0318"
     },
     {
-        "name": "ttgo-t-beam",
+        "board": "ttgo-t-beam",
         "version": "1.1",
         "filename": "/fotatest/nonexistingfile-1.1.bin",
         "size": 267328,

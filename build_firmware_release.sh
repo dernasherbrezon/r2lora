@@ -20,7 +20,7 @@ do
     pigz --zlib ${file}
     cp ${file}.zz ./target/${dstFilename}
     echo "{" >> ${FILE_INDEX}
-    echo "\"name\": \"${newname}\"," >> ${FILE_INDEX}
+    echo "\"board\": \"${newname}\"," >> ${FILE_INDEX}
     echo "\"version\": \"${VERSION}\"," >> ${FILE_INDEX}
     echo "\"filename\": \"/fota/${dstFilename}\"," >> ${FILE_INDEX}
     echo "\"size\": ${size}," >> ${FILE_INDEX}

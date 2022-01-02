@@ -1,11 +1,10 @@
 #include "JsonHandler.h"
 
-JsonHandler::JsonHandler(std::function<int(String &, String *)> func, const Uri &uri, HTTPMethod method, const char *username, const char *password) {
+JsonHandler::JsonHandler(std::function<int(String &, String *)> func, const Uri &uri, HTTPMethod method, Configurator *config) {
   this->func = func;
   this->uri = uri.clone();
   this->method = method;
-  this->apiUsername = apiUsername;
-  this->apiPassword = apiPassword;
+  this->config = config;
   this->uri->initPathArgs(pathArgs);
 }
 
@@ -28,7 +27,7 @@ bool JsonHandler::handle(WebServer &server, HTTPMethod requestMethod, String req
   if (!canHandle(requestMethod, requestUri)) {
     return false;
   }
-  if (!server.authenticate(apiUsername, apiPassword)) {
+  if (!server.authenticate(config->getUsername(), config->getPassword())) {
     server.requestAuthentication();
     return true;
   }

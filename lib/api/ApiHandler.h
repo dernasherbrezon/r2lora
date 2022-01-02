@@ -4,10 +4,11 @@
 #include <LoRaFrame.h>
 #include <LoRaModule.h>
 #include <WebServer.h>
+#include <Configurator.h>
 
 class ApiHandler {
  public:
-  ApiHandler(WebServer *web, LoRaModule *lora, const char *apiUsername, const char *apiPassword);
+  ApiHandler(WebServer *web, LoRaModule *lora, Configurator *config);
   void loop();
 
   // for tests mostly

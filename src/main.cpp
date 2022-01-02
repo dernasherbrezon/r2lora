@@ -1,12 +1,12 @@
 #include <ApiHandler.h>
 #include <ArduinoJson.h>
+#include <Configurator.h>
 #include <Fota.h>
 #include <LoRaModule.h>
 #include <WiFiServer.h>
 #include <esp32-hal-log.h>
 #include <time.h>
 
-#include "Configurator.h"
 #include "Display.h"
 
 #ifndef FIRMWARE_VERSION
@@ -110,7 +110,7 @@ void setup() {
     display->update();
   });
 
-  apiHandler = new ApiHandler(web, lora, conf->getUsername(), conf->getPassword());
+  apiHandler = new ApiHandler(web, lora, conf);
 
   web->on("/status", HTTP_GET, []() {
     handleStatus();

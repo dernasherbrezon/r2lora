@@ -2,10 +2,11 @@
 #define JsonHandler_h
 
 #include <WebServer.h>
+#include <Configurator.h>
 
 class JsonHandler : public RequestHandler {
  public:
-  JsonHandler(std::function<int(String &, String *)> func, const Uri &uri, HTTPMethod method, const char *username, const char *password);
+  JsonHandler(std::function<int(String &, String *)> func, const Uri &uri, HTTPMethod method, Configurator *config);
 
   ~JsonHandler();
 
@@ -19,10 +20,9 @@ class JsonHandler : public RequestHandler {
 
  private:
   std::function<int(String&, String *)> func = nullptr;
-  Uri *uri;
+  Uri *uri = NULL;
   HTTPMethod method;
-  const char *apiUsername = NULL;
-  const char *apiPassword = NULL;
+  Configurator *config = NULL;
 };
 
 #endif

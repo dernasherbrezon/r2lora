@@ -52,7 +52,7 @@ void assertStatus(String *actual, const char *status) {
 }
 
 void test_success_start(void) {
-  ApiHandler handler(&web, &mock, NULL, NULL);
+  ApiHandler handler(&web, &mock, NULL);
   String output;
   int code = handler.handleStart(VALID_RX_REQUEST, &output);
   TEST_ASSERT_EQUAL_INT(200, code);
@@ -60,7 +60,7 @@ void test_success_start(void) {
 }
 
 void test_no_request(void) {
-  ApiHandler handler(&web, &mock, NULL, NULL);
+  ApiHandler handler(&web, &mock, NULL);
   String output;
   String body = "";
   int code = handler.handleStart(body, &output);
@@ -69,7 +69,7 @@ void test_no_request(void) {
 }
 
 void test_invalid_json(void) {
-  ApiHandler handler(&web, &mock, NULL, NULL);
+  ApiHandler handler(&web, &mock, NULL);
   String output;
   int code = handler.handleStart(INVALID_RX_REQUEST, &output);
   TEST_ASSERT_EQUAL_INT(200, code);
@@ -77,7 +77,7 @@ void test_invalid_json(void) {
 }
 
 void test_begin_failed(void) {
-  ApiHandler handler(&web, &mock, NULL, NULL);
+  ApiHandler handler(&web, &mock, NULL);
   mock.rxCode = -1;
   String output;
   int code = handler.handleStart(VALID_RX_REQUEST, &output);
@@ -86,7 +86,7 @@ void test_begin_failed(void) {
 }
 
 void test_success_stop_even_if_not_running(void) {
-  ApiHandler handler(&web, &mock, NULL, NULL);
+  ApiHandler handler(&web, &mock, NULL);
   String output;
   String body = "";
   int code = handler.handleStop(body, &output);
@@ -96,7 +96,7 @@ void test_success_stop_even_if_not_running(void) {
 
 void test_pull(void) {
   setupFrame();
-  ApiHandler handler(&web, &mock, NULL, NULL);
+  ApiHandler handler(&web, &mock, NULL);
   String output;
   handler.handleStart(VALID_RX_REQUEST, &output);
   // ignore start response. should be tested in other test cases
@@ -121,7 +121,7 @@ void test_pull(void) {
 
 void test_frames_after_stop(void) {
   setupFrame();
-  ApiHandler handler(&web, &mock, NULL, NULL);
+  ApiHandler handler(&web, &mock, NULL);
   String output;
   handler.handleStart(VALID_RX_REQUEST, &output);
   // ignore start response. should be tested in other test cases
@@ -139,7 +139,7 @@ void test_frames_after_stop(void) {
 }
 
 void test_cant_tx_during_receive(void) {
-  ApiHandler handler(&web, &mock, NULL, NULL);
+  ApiHandler handler(&web, &mock, NULL);
   mock.receiving = true;
   String output;
   int code = handler.handleTx(VALID_TX_REQUEST, &output);
@@ -148,7 +148,7 @@ void test_cant_tx_during_receive(void) {
 }
 
 void test_invalid_tx_request(void) {
-  ApiHandler handler(&web, &mock, NULL, NULL);
+  ApiHandler handler(&web, &mock, NULL);
   mock.receiving = false;
   String output;
   int code = handler.handleTx(INVALID_TX_REQUEST, &output);
@@ -157,7 +157,7 @@ void test_invalid_tx_request(void) {
 }
 
 void test_empty_tx_request(void) {
-  ApiHandler handler(&web, &mock, NULL, NULL);
+  ApiHandler handler(&web, &mock, NULL);
   mock.receiving = false;
   String output;
   String body = "";
@@ -167,7 +167,7 @@ void test_empty_tx_request(void) {
 }
 
 void test_invalid_lora_tx_code(void) {
-  ApiHandler handler(&web, &mock, NULL, NULL);
+  ApiHandler handler(&web, &mock, NULL);
   mock.receiving = false;
   mock.txCode = -1;
   String output;
@@ -177,7 +177,7 @@ void test_invalid_lora_tx_code(void) {
 }
 
 void test_invalid_tx_data_request(void) {
-  ApiHandler handler(&web, &mock, NULL, NULL);
+  ApiHandler handler(&web, &mock, NULL);
   mock.receiving = false;
   String output;
   int code = handler.handleTx(INVALID_TX_DATA_REQUEST, &output);
@@ -186,7 +186,7 @@ void test_invalid_tx_data_request(void) {
 }
 
 void test_success_tx(void) {
-  ApiHandler handler(&web, &mock, NULL, NULL);
+  ApiHandler handler(&web, &mock, NULL);
   mock.receiving = false;
   String output;
   int code = handler.handleTx(VALID_TX_REQUEST, &output);

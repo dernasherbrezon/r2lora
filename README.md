@@ -11,9 +11,9 @@ r2lora exposes LoRa module functionality via REST API. This API can be accessed 
 # Features
 
  * REST API
-  * RX start/stop
-  * TX
-  * Device status
+   * RX start/stop
+   * TX
+   * Device status
  * Basic authentication
  * Initial configuration via standalone WiFi access point
  * [FOTA](https://dernasherbrezon.com/posts/fota-for-r2lora/) updates from [apt.r2server.ru](https://apt.r2server.ru)

@@ -26,15 +26,26 @@ int LoRaModule::init(Chip chip) {
   reset();
   this->module = new Module(PIN_CS, PIN_DI0, PIN_RST);
   if (chip.getType() == ChipType::TYPE_SX1278) {
-    this->phys = new SX1278(module);
+    SX1278 *sx = new SX1278(module);
+    // init with default settings.
+    // rx/tx will override essential
+    int16_t status = sx->begin();
+    if (status != ERR_NONE) {
+      return status;
+    }
+    this->phys = sx;
   } else if (chip.getType() == ChipType::TYPE_SX1276) {
-    this->phys = new SX1276(module);
+    SX1276 *sx = new SX1276(module);
+    int16_t status = sx->begin();
+    if (status != ERR_NONE) {
+      return status;
+    }
+    this->phys = sx;
   } else {
-    log_e("unknown chip type: %d", chip.getType());
-    return -1;
+    return ERR_CHIP_NOT_FOUND;
   }
   this->type = chip.getType();
-  return 0;
+  return ERR_NONE;
 }
 
 void LoRaModule::reset() {
@@ -225,48 +236,100 @@ int LoRaModule::tx(uint8_t *data, size_t dataLength, float freq, float bw, uint8
 }
 
 int16_t LoRaModule::begin(float freq, float bw, uint8_t sf, uint8_t cr, uint8_t syncWord, int8_t power, uint16_t preambleLength, uint8_t gain, uint8_t ldro) {
-  int16_t status;
   if (this->type == ChipType::TYPE_SX1278) {
     SX1278 *sx = (SX1278 *)this->phys;
-    // power is default, because of RX request
-    status = sx->begin(freq, bw, sf, cr, syncWord, power, preambleLength, gain);
+
+    int16_t status = sx->setFrequency(freq);
+    RADIOLIB_ASSERT(status);
+
+    status = sx->setSyncWord(syncWord);
+    RADIOLIB_ASSERT(status);
+
+    status = sx->setPreambleLength(preambleLength);
+    RADIOLIB_ASSERT(status);
+
+    status = sx->setBandwidth(bw);
+    RADIOLIB_ASSERT(status);
+
+    status = sx->setSpreadingFactor(sf);
+    RADIOLIB_ASSERT(status);
+
+    status = sx->setCodingRate(cr);
+    RADIOLIB_ASSERT(status);
+
+    status = sx->setOutputPower(power);
+    RADIOLIB_ASSERT(status);
+
+    status = sx->setGain(gain);
+    RADIOLIB_ASSERT(status);
+
     switch (ldro) {
       case LDRO_AUTO:
-        sx->autoLDRO();
+        status = sx->autoLDRO();
         break;
       case LDRO_ON:
-        sx->forceLDRO(true);
+        status = sx->forceLDRO(true);
         break;
       case LDRO_OFF:
-        sx->forceLDRO(false);
+        status = sx->forceLDRO(false);
         break;
       default:
         break;
     }
-    // always checksum
-    sx->setCRC(true);
+    RADIOLIB_ASSERT(status);
+
+    status = sx->setCRC(true);
+    RADIOLIB_ASSERT(status);
+    return ERR_NONE;
+    
   } else if (this->type == ChipType::TYPE_SX1276) {
     SX1276 *sx = (SX1276 *)phys;
-    status = sx->begin(freq, bw, sf, cr, syncWord, power, preambleLength, gain);
+
+    int16_t status = sx->setFrequency(freq);
+    RADIOLIB_ASSERT(status);
+
+    status = sx->setSyncWord(syncWord);
+    RADIOLIB_ASSERT(status);
+
+    status = sx->setPreambleLength(preambleLength);
+    RADIOLIB_ASSERT(status);
+
+    status = sx->setBandwidth(bw);
+    RADIOLIB_ASSERT(status);
+
+    status = sx->setSpreadingFactor(sf);
+    RADIOLIB_ASSERT(status);
+
+    status = sx->setCodingRate(cr);
+    RADIOLIB_ASSERT(status);
+
+    status = sx->setOutputPower(power);
+    RADIOLIB_ASSERT(status);
+
+    status = sx->setGain(gain);
+    RADIOLIB_ASSERT(status);
+
     switch (ldro) {
       case LDRO_AUTO:
-        sx->autoLDRO();
+        status = sx->autoLDRO();
         break;
       case LDRO_ON:
-        sx->forceLDRO(true);
+        status = sx->forceLDRO(true);
         break;
       case LDRO_OFF:
-        sx->forceLDRO(false);
+        status = sx->forceLDRO(false);
         break;
       default:
         break;
     }
-    // always checksum
-    sx->setCRC(true);
+    RADIOLIB_ASSERT(status);
+
+    status = sx->setCRC(true);
+    RADIOLIB_ASSERT(status);
+    return ERR_NONE;
   } else {
-    status = ERR_UNKNOWN;
+    return ERR_UNKNOWN;
   }
-  return status;
 }
 
 LoRaModule::~LoRaModule() {

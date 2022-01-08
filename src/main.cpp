@@ -24,11 +24,17 @@ ApiHandler *apiHandler;
 Display *display;
 Fota *updater;
 
+bool chipInitializationFailed = false;
+
 const char *getStatus() {
   // SETUP - waiting for AP to initialize
   // CONNECTING - connecting to WiFi
   // RECEIVING - lora is listening for data
   // IDLE - module is waiting for rx/tx requests
+  // CHIP FAIL - chip initialization failed
+  if (chipInitializationFailed) {
+    return "CHIP FAIL";
+  }
   if (conf->getState() == iotwebconf::NetworkState::Connecting) {
     return "CONNECTING";
   } else if (!conf->isConfigured() || conf->getState() == iotwebconf::NetworkState::ApMode) {
@@ -92,7 +98,13 @@ void setup() {
     log_i("configuration completed");
     configTime(0, 0, conf->getNtpServer());
     log_i("NTP initialized: %s", conf->getNtpServer());
-    lora->init(conf->getChip());
+    int status = lora->init(conf->getChip());
+    if (status != ERR_NONE) {
+      log_e("unable to initialize lora chip: %d", status);
+      chipInitializationFailed = true;
+    } else {
+      chipInitializationFailed = false;
+    }
     display->setStationName(conf->getDeviceName());
     display->setStatus(getStatus());
     display->update();

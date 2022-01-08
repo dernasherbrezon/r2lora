@@ -2,13 +2,13 @@
 
 pio test -f testfirmware --without-testing --without-uploading
 
-SUCCESS_JSON="./test/resources/fota/success.json"
-INVALID_ZLIB_JZON="./test/resources/fota/invalidzlib.json"
-MISMATCHED_CHECKSUM_JSON="./test/resources/fota/mismatchedchecksum.json"
+SUCCESS_JSON="./test_resources/success.json"
+INVALID_ZLIB_JZON="./test_resources/invalidzlib.json"
+MISMATCHED_CHECKSUM_JSON="./test_resources/mismatchedchecksum.json"
 VERSION="1.1"
 
 invalidZlibFileName="invalidzlib-${VERSION}.bin.zz"
-invalidZlibFile="./test/resources/fota/${invalidZlibFileName}"
+invalidZlibFile="./test_resources/${invalidZlibFileName}"
 echo "not a zlib" >> ${invalidZlibFile}
 invalidZlibsize=$(wc -c ${invalidZlibFile} | awk '{print $1}')
 
@@ -24,7 +24,7 @@ do
     size=$(wc -c ${file} | awk '{print $1}')
     dstFilename=${newname}-${VERSION}.bin.zz
     pigz --zlib ${file}
-    cp ${file}.zz ./test/resources/fota/${dstFilename}
+    cp ${file}.zz ./test_resources/${dstFilename}
     echo "{" >> ${SUCCESS_JSON}
     echo "\"board\": \"${newname}\"," >> ${SUCCESS_JSON}
     echo "\"version\": \"${VERSION}\"," >> ${SUCCESS_JSON}

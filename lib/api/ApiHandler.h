@@ -11,7 +11,7 @@ class ApiHandler {
   ApiHandler(WebServer *web, LoRaModule *lora, Configurator *config);
   void loop();
 
-  // for tests mostly
+  // public scope for tests mostly
   int handleStart(String &body, String *output);
   int handleStop(String &body, String *output);
   int handlePull(String &body, String *output);

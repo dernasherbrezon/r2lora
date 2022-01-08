@@ -51,13 +51,25 @@ void handleStatus() {
     web->requestAuthentication();
     return;
   }
-  StaticJsonDocument<128> json;
+  StaticJsonDocument<256> json;
   json["status"] = getStatus();
+  //FIXME lora never NULL + TempRaw might fail if lora not configured
   if (lora != NULL) {
     int8_t sxTemperature;
     if (lora->getTempRaw(&sxTemperature) == 0) {
       json["loraTemperature"] = sxTemperature;
     }
+  }
+  Chip chip = conf->getChip();
+  if (chip.loraSupported) {
+    JsonObject obj = json.createNestedObject("lora");
+    obj["minFreq"] = chip.minLoraFrequency;
+    obj["maxFreq"] = chip.maxLoraFrequency;
+  }
+  if (chip.fskSupported) {
+    JsonObject obj = json.createNestedObject("fsk");
+    obj["minFreq"] = chip.minFskFrequency;
+    obj["maxFreq"] = chip.maxFskFrequency;
   }
 
   String output;

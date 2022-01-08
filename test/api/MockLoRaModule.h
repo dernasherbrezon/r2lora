@@ -11,10 +11,10 @@ class MockLoRaModule : public LoRaModule {
   bool isReceivingData();
   int16_t tx(uint8_t *data, size_t dataLength, float freq, float bw, uint8_t sf, uint8_t cr, uint8_t syncWord, uint16_t preambleLength, int8_t power);
 
-  int16_t rxCode = 0;
+  int16_t rxCode = ERR_NONE;
   std::vector<LoRaFrame *> expectedFrames;
   bool receiving = false;
-  int16_t txCode = 0;
+  int16_t txCode = ERR_NONE;
   int currentFrameIndex = 0;
 
 };

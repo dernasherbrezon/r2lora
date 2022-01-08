@@ -15,7 +15,7 @@ class Configurator {
 
   void setOnConfiguredCallback(std::function<void()> func);
   void setOnWifiConnectedCallback(std::function<void()> func);
-  Chip getChip();
+  Chip *getChip();
   iotwebconf::NetworkState getState();
 
   void loop();

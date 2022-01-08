@@ -21,11 +21,11 @@ volatile bool receivedFlag = false;
 // disable interrupt when it's not needed
 volatile bool enableInterrupt = true;
 
-int LoRaModule::init(Chip chip) {
-  log_i("initialize chip: %s", chip.getName());
+int16_t LoRaModule::init(Chip *chip) {
+  log_i("initialize chip: %s", chip->getName());
   reset();
   this->module = new Module(PIN_CS, PIN_DI0, PIN_RST);
-  if (chip.getType() == ChipType::TYPE_SX1278) {
+  if (chip->getType() == ChipType::TYPE_SX1278) {
     SX1278 *sx = new SX1278(module);
     // init with default settings.
     // rx/tx will override essential
@@ -35,7 +35,7 @@ int LoRaModule::init(Chip chip) {
       return status;
     }
     this->phys = sx;
-  } else if (chip.getType() == ChipType::TYPE_SX1276) {
+  } else if (chip->getType() == ChipType::TYPE_SX1276) {
     SX1276 *sx = new SX1276(module);
     int16_t status = sx->begin();
     if (status != ERR_NONE) {
@@ -44,10 +44,10 @@ int LoRaModule::init(Chip chip) {
     }
     this->phys = sx;
   } else {
-    log_e("unsupported chip found: %d", chip.getType());
+    log_e("unsupported chip found: %d", chip->getType());
     return ERR_CHIP_NOT_FOUND;
   }
-  this->type = chip.getType();
+  this->type = chip->getType();
   return ERR_NONE;
 }
 
@@ -57,9 +57,11 @@ void LoRaModule::reset() {
   }
   if (this->module != NULL) {
     free(this->module);
+    this->module = NULL;
   }
   if (this->phys != NULL) {
     free(this->phys);
+    this->phys = NULL;
   }
   // some default type
   this->type = ChipType::TYPE_SX1278;
@@ -211,6 +213,9 @@ void LoRaModule::setOnRxStoppedCallback(std::function<void()> func) {
 }
 
 int LoRaModule::getTempRaw(int8_t *value) {
+  if (this->phys == NULL) {
+    return -1;
+  }
   if (this->type == ChipType::TYPE_SX1278) {
     SX1278 *sx = (SX1278 *)this->phys;
     *value = sx->getTempRaw();
@@ -342,11 +347,5 @@ int16_t LoRaModule::begin(float freq, float bw, uint8_t sf, uint8_t cr, uint8_t 
 }
 
 LoRaModule::~LoRaModule() {
-  if (this->phys != NULL) {
-    // no private destructor for all RadioLib modules
-    free(this->phys);
-  }
-  if (this->module != NULL) {
-    free(this->module);
-  }
+  reset();
 }

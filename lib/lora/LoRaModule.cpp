@@ -66,53 +66,20 @@ void setFlag(void) {
 }
 
 int LoRaModule::startRx(float freq, float bw, uint8_t sf, uint8_t cr, uint8_t syncWord, uint16_t preambleLength, uint8_t gain, uint8_t ldro) {
-  int16_t status;
-  SX127x *genericSx;
-  if (this->type == ChipType::TYPE_SX1278) {
-    SX1278 *sx = (SX1278 *)phys;
-    // power is default, because of RX request
-    status = sx->begin(freq, bw, sf, cr, syncWord, 10, preambleLength, gain);
-    switch (ldro) {
-      case LDRO_AUTO:
-        sx->autoLDRO();
-        break;
-      case LDRO_ON:
-        sx->forceLDRO(true);
-        break;
-      case LDRO_OFF:
-        sx->forceLDRO(false);
-        break;
-      default:
-        break;
-    }
-    // always checksum
-    sx->setCRC(true);
-    genericSx = sx;
-  } else if (this->type == ChipType::TYPE_SX1276) {
-    SX1276 *sx = (SX1276 *)phys;
-    status = sx->begin(freq, bw, sf, cr, syncWord, 10, preambleLength, gain);
-    switch (ldro) {
-      case LDRO_AUTO:
-        sx->autoLDRO();
-        break;
-      case LDRO_ON:
-        sx->forceLDRO(true);
-        break;
-      case LDRO_OFF:
-        sx->forceLDRO(false);
-        break;
-      default:
-        break;
-    }
-    // always checksum
-    sx->setCRC(true);
-    genericSx = sx;
-  } else {
-    status = ERR_UNKNOWN;
-  }
+  int16_t status = this->begin(freq, bw, sf, cr, syncWord, 10, preambleLength, gain, ldro);
   if (status != ERR_NONE) {
     log_e("unable to begin LoRa: %d", status);
     return status;
+  }
+  SX127x *genericSx;
+  if (this->type == ChipType::TYPE_SX1278) {
+    SX1278 *sx = (SX1278 *)phys;
+    genericSx = sx;
+  } else if (this->type == ChipType::TYPE_SX1276) {
+    SX1276 *sx = (SX1276 *)phys;
+    genericSx = sx;
+  } else {
+    return ERR_CHIP_NOT_FOUND;
   }
   genericSx->setDio0Action(setFlag);
   status = genericSx->startReceive();
@@ -240,23 +207,66 @@ int LoRaModule::getTempRaw(int8_t *value) {
   return -1;
 }
 
-int LoRaModule::tx(uint8_t *data, size_t dataLength, int8_t power) {
+int LoRaModule::tx(uint8_t *data, size_t dataLength, float freq, float bw, uint8_t sf, uint8_t cr, uint8_t syncWord, uint16_t preambleLength, int8_t power) {
+  int16_t status = this->begin(freq, bw, sf, cr, syncWord, power, preambleLength, 10, 0);
+  if (status != ERR_NONE) {
+    log_e("unable to begin LoRa: %d", status);
+    return status;
+  }
   if (this->type == ChipType::TYPE_SX1278) {
     SX1278 *sx = (SX1278 *)this->phys;
-    int code = sx->setOutputPower(power);
-    if (code != ERR_NONE) {
-      return code;
-    }
     return sx->transmit(data, dataLength);
   } else if (this->type == ChipType::TYPE_SX1276) {
     SX1276 *sx = (SX1276 *)this->phys;
-    int code = sx->setOutputPower(power);
-    if (code != ERR_NONE) {
-      return code;
-    }
     return sx->transmit(data, dataLength);
+  } else {
+    return ERR_CHIP_NOT_FOUND;
   }
-  return -1;
+}
+
+int16_t LoRaModule::begin(float freq, float bw, uint8_t sf, uint8_t cr, uint8_t syncWord, int8_t power, uint16_t preambleLength, uint8_t gain, uint8_t ldro) {
+  int16_t status;
+  if (this->type == ChipType::TYPE_SX1278) {
+    SX1278 *sx = (SX1278 *)this->phys;
+    // power is default, because of RX request
+    status = sx->begin(freq, bw, sf, cr, syncWord, power, preambleLength, gain);
+    switch (ldro) {
+      case LDRO_AUTO:
+        sx->autoLDRO();
+        break;
+      case LDRO_ON:
+        sx->forceLDRO(true);
+        break;
+      case LDRO_OFF:
+        sx->forceLDRO(false);
+        break;
+      default:
+        break;
+    }
+    // always checksum
+    sx->setCRC(true);
+  } else if (this->type == ChipType::TYPE_SX1276) {
+    SX1276 *sx = (SX1276 *)phys;
+    status = sx->begin(freq, bw, sf, cr, syncWord, power, preambleLength, gain);
+    switch (ldro) {
+      case LDRO_AUTO:
+        sx->autoLDRO();
+        break;
+      case LDRO_ON:
+        sx->forceLDRO(true);
+        break;
+      case LDRO_OFF:
+        sx->forceLDRO(false);
+        break;
+      default:
+        break;
+    }
+    // always checksum
+    sx->setCRC(true);
+  } else {
+    status = ERR_UNKNOWN;
+  }
+  return status;
 }
 
 LoRaModule::~LoRaModule() {

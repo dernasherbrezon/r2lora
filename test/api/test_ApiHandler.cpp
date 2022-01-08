@@ -16,9 +16,9 @@ String INVALID_RX_REQUEST =
     "{\"freq\":433.0 \"bw\":10.4,\"sf\":9,\"cr\":6,\"syncWord\":18,\"power\":"
     "10,\"preambleLength\":55,\"gain\":0,\"ldro\":0}";
 
-String VALID_TX_REQUEST = "{\"data\":\"CAFE\",\"power\":10}";
-String INVALID_TX_REQUEST = "{\"data\":\"CAFE\" \"power\":10}";
-String INVALID_TX_DATA_REQUEST = "{\"data\":\"CAXE\",\"power\":10}";
+String VALID_TX_REQUEST = "{\"freq\":433.0,\"bw\":10.4,\"sf\":9,\"cr\":6,\"syncWord\":18,\"preambleLength\":55,\"data\":\"CAFE\",\"power\":10}";
+String INVALID_TX_REQUEST = "{\"freq\":433.0,\"bw\":10.4,\"sf\":9,\"cr\":6,\"syncWord\":18,\"preambleLength\":55,\"data\":\"CAFE\" \"power\":10}";
+String INVALID_TX_DATA_REQUEST = "{\"freq\":433.0,\"bw\":10.4,\"sf\":9,\"cr\":6,\"syncWord\":18,\"preambleLength\":55,\"data\":\"CAXE\",\"power\":10}";
 
 void setUp(void) {
   mock.rxCode = 0;

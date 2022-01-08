@@ -71,6 +71,12 @@ int ApiHandler::handleTx(String &body, String *output) {
   }
   const char *data = doc["data"];
   int8_t power = doc["power"];
+  float freq = doc["freq"];                         // = (434.0F)
+  float bw = doc["bw"];                             // = (125.0F)
+  uint8_t sf = doc["sf"];                           // = (uint8_t)9U
+  uint8_t cr = doc["cr"];                           // = (uint8_t)7U
+  uint8_t syncWord = doc["syncWord"];               // = (uint8_t)18U
+  uint16_t preambleLength = doc["preambleLength"];  // = (uint16_t)8U
   uint8_t *binaryData = NULL;
   size_t binaryDataLength = 0;
   int code = convertStringToHex(data, &binaryData, &binaryDataLength);
@@ -79,7 +85,7 @@ int ApiHandler::handleTx(String &body, String *output) {
     return 200;
   }
   log_i("tx data: %s", data);
-  code = lora->tx(binaryData, binaryDataLength, power);
+  code = lora->tx(binaryData, binaryDataLength, freq, bw, sf, cr, syncWord, preambleLength, power);
   free(binaryData);
   if (code != 0) {
     this->sendFailure("unable to transmit", output);

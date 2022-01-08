@@ -9,7 +9,7 @@ class MockLoRaModule : public LoRaModule {
   LoRaFrame *loop();
   void stopRx();
   bool isReceivingData();
-  int tx(uint8_t *data, size_t dataLength, int8_t power);
+  int tx(uint8_t *data, size_t dataLength, float freq, float bw, uint8_t sf, uint8_t cr, uint8_t syncWord, uint16_t preambleLength, int8_t power);
 
   int rxCode = 0;
   std::vector<LoRaFrame *> expectedFrames;

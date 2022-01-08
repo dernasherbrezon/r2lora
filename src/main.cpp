@@ -100,7 +100,6 @@ void setup() {
     log_i("NTP initialized: %s", conf->getNtpServer());
     int status = lora->init(conf->getChip());
     if (status != ERR_NONE) {
-      log_e("unable to initialize lora chip: %d", status);
       chipInitializationFailed = true;
     } else {
       chipInitializationFailed = false;

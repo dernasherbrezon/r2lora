@@ -15,11 +15,11 @@ class LoRaModule {
   ~LoRaModule();
   int init(Chip chip);
   // virtual functions used by Mock overrides in tests
-  virtual int startRx(float freq, float bw, uint8_t sf, uint8_t cr, uint8_t syncWord, uint16_t preambleLength, uint8_t gain, uint8_t ldro);
+  virtual int16_t startRx(float freq, float bw, uint8_t sf, uint8_t cr, uint8_t syncWord, uint16_t preambleLength, uint8_t gain, uint8_t ldro);
   virtual LoRaFrame *loop();
   virtual void stopRx();
   virtual bool isReceivingData();
-  virtual int tx(uint8_t *data, size_t dataLength, float freq, float bw, uint8_t sf, uint8_t cr, uint8_t syncWord, uint16_t preambleLength, int8_t power);
+  virtual int16_t tx(uint8_t *data, size_t dataLength, float freq, float bw, uint8_t sf, uint8_t cr, uint8_t syncWord, uint16_t preambleLength, int8_t power);
   int getTempRaw(int8_t *value);
   void setOnRxStartedCallback(std::function<void()> func);
   void setOnRxStoppedCallback(std::function<void()> func);

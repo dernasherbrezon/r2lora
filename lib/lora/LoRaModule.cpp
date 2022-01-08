@@ -31,6 +31,7 @@ int LoRaModule::init(Chip chip) {
     // rx/tx will override essential
     int16_t status = sx->begin();
     if (status != ERR_NONE) {
+      log_e("unable to initialize lora chip: %d", status);
       return status;
     }
     this->phys = sx;
@@ -38,10 +39,12 @@ int LoRaModule::init(Chip chip) {
     SX1276 *sx = new SX1276(module);
     int16_t status = sx->begin();
     if (status != ERR_NONE) {
+      log_e("unable to initialize lora chip: %d", status);
       return status;
     }
     this->phys = sx;
   } else {
+    log_e("unsupported chip found: %d", chip.getType());
     return ERR_CHIP_NOT_FOUND;
   }
   this->type = chip.getType();
@@ -76,10 +79,10 @@ void setFlag(void) {
   receivedFlag = true;
 }
 
-int LoRaModule::startRx(float freq, float bw, uint8_t sf, uint8_t cr, uint8_t syncWord, uint16_t preambleLength, uint8_t gain, uint8_t ldro) {
+int16_t LoRaModule::startRx(float freq, float bw, uint8_t sf, uint8_t cr, uint8_t syncWord, uint16_t preambleLength, uint8_t gain, uint8_t ldro) {
   int16_t status = this->begin(freq, bw, sf, cr, syncWord, 10, preambleLength, gain, ldro);
   if (status != ERR_NONE) {
-    log_e("unable to begin LoRa: %d", status);
+    log_e("unable to init tx: %d", status);
     return status;
   }
   SX127x *genericSx;
@@ -100,6 +103,8 @@ int LoRaModule::startRx(float freq, float bw, uint8_t sf, uint8_t cr, uint8_t sy
     if (this->rxStartedCallback != NULL) {
       this->rxStartedCallback();
     }
+  } else {
+    log_e("unable to start rx: %d", status);
   }
   return status;
 }
@@ -218,21 +223,25 @@ int LoRaModule::getTempRaw(int8_t *value) {
   return -1;
 }
 
-int LoRaModule::tx(uint8_t *data, size_t dataLength, float freq, float bw, uint8_t sf, uint8_t cr, uint8_t syncWord, uint16_t preambleLength, int8_t power) {
+int16_t LoRaModule::tx(uint8_t *data, size_t dataLength, float freq, float bw, uint8_t sf, uint8_t cr, uint8_t syncWord, uint16_t preambleLength, int8_t power) {
   int16_t status = this->begin(freq, bw, sf, cr, syncWord, power, preambleLength, 10, 0);
   if (status != ERR_NONE) {
-    log_e("unable to begin LoRa: %d", status);
+    log_e("unable to init tx: %d", status);
     return status;
   }
   if (this->type == ChipType::TYPE_SX1278) {
     SX1278 *sx = (SX1278 *)this->phys;
-    return sx->transmit(data, dataLength);
+    status = sx->transmit(data, dataLength);
   } else if (this->type == ChipType::TYPE_SX1276) {
     SX1276 *sx = (SX1276 *)this->phys;
-    return sx->transmit(data, dataLength);
+    status = sx->transmit(data, dataLength);
   } else {
-    return ERR_CHIP_NOT_FOUND;
+    status = ERR_CHIP_NOT_FOUND;
   }
+  if (status != ERR_NONE) {
+    log_e("unable to tx: %d", status);
+  }
+  return status;
 }
 
 int16_t LoRaModule::begin(float freq, float bw, uint8_t sf, uint8_t cr, uint8_t syncWord, int8_t power, uint16_t preambleLength, uint8_t gain, uint8_t ldro) {
@@ -281,7 +290,7 @@ int16_t LoRaModule::begin(float freq, float bw, uint8_t sf, uint8_t cr, uint8_t 
     status = sx->setCRC(true);
     RADIOLIB_ASSERT(status);
     return ERR_NONE;
-    
+
   } else if (this->type == ChipType::TYPE_SX1276) {
     SX1276 *sx = (SX1276 *)phys;
 

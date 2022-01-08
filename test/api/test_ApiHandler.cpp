@@ -21,9 +21,9 @@ String INVALID_TX_REQUEST = "{\"freq\":433.0,\"bw\":10.4,\"sf\":9,\"cr\":6,\"syn
 String INVALID_TX_DATA_REQUEST = "{\"freq\":433.0,\"bw\":10.4,\"sf\":9,\"cr\":6,\"syncWord\":18,\"preambleLength\":55,\"data\":\"CAXE\",\"power\":10}";
 
 void setUp(void) {
-  mock.rxCode = 0;
+  mock.rxCode = ERR_NONE;
   mock.receiving = false;
-  mock.txCode = 0;
+  mock.txCode = ERR_NONE;
   mock.expectedFrames.clear();
   mock.currentFrameIndex = 0;
 }

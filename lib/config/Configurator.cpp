@@ -83,7 +83,7 @@ Chip *Configurator::getChip() {
   if (!this->configured) {
     return NULL;
   }
-  return &this->chips->getAll()[atoi(this->chipIndex)];
+  return this->chips->getAll()[atoi(this->chipIndex)];
 }
 
 bool Configurator::formValidator(iotwebconf::WebRequestWrapper *web) {

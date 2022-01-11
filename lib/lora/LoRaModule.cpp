@@ -84,7 +84,7 @@ void setFlag(void) {
 int16_t LoRaModule::startRx(float freq, float bw, uint8_t sf, uint8_t cr, uint8_t syncWord, uint16_t preambleLength, uint8_t gain, uint8_t ldro) {
   int16_t status = this->begin(freq, bw, sf, cr, syncWord, 10, preambleLength, gain, ldro);
   if (status != ERR_NONE) {
-    log_e("unable to init tx: %d", status);
+    log_e("unable to init rx: %d", status);
     return status;
   }
   SX127x *genericSx;
@@ -229,7 +229,7 @@ int LoRaModule::getTempRaw(int8_t *value) {
 }
 
 int16_t LoRaModule::tx(uint8_t *data, size_t dataLength, float freq, float bw, uint8_t sf, uint8_t cr, uint8_t syncWord, uint16_t preambleLength, int8_t power) {
-  int16_t status = this->begin(freq, bw, sf, cr, syncWord, power, preambleLength, 10, 0);
+  int16_t status = this->begin(freq, bw, sf, cr, syncWord, power, preambleLength, 0, 0);
   if (status != ERR_NONE) {
     log_e("unable to init tx: %d", status);
     return status;

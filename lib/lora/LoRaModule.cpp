@@ -25,7 +25,7 @@ int16_t LoRaModule::init(Chip *chip) {
   log_i("initialize chip: %s", chip->getName());
   reset();
   this->module = new Module(PIN_CS, PIN_DI0, PIN_RST);
-  if (chip->getType() == ChipType::TYPE_SX1278) {
+  if (isSX1278()) {
     SX1278 *sx = new SX1278(module);
     // init with default settings.
     // rx/tx will override essential
@@ -35,7 +35,7 @@ int16_t LoRaModule::init(Chip *chip) {
       return status;
     }
     this->phys = sx;
-  } else if (chip->getType() == ChipType::TYPE_SX1276) {
+  } else if (isSX1276()) {
     SX1276 *sx = new SX1276(module);
     int16_t status = sx->begin();
     if (status != ERR_NONE) {
@@ -88,10 +88,10 @@ int16_t LoRaModule::startRx(float freq, float bw, uint8_t sf, uint8_t cr, uint8_
     return status;
   }
   SX127x *genericSx;
-  if (this->type == ChipType::TYPE_SX1278) {
+  if (isSX1278()) {
     SX1278 *sx = (SX1278 *)phys;
     genericSx = sx;
-  } else if (this->type == ChipType::TYPE_SX1276) {
+  } else if (isSX1276()) {
     SX1276 *sx = (SX1276 *)phys;
     genericSx = sx;
   } else {
@@ -122,10 +122,10 @@ LoRaFrame *LoRaModule::loop() {
 
   // put module back to listen mode
   int16_t status = ERR_NONE;
-  if (this->type == ChipType::TYPE_SX1278) {
+  if (isSX1278()) {
     SX1278 *sx = (SX1278 *)this->phys;
     status = sx->startReceive();
-  } else if (this->type == ChipType::TYPE_SX1276) {
+  } else if (isSX1276()) {
     SX1276 *sx = (SX1276 *)this->phys;
     status = sx->startReceive();
   }
@@ -167,12 +167,12 @@ LoRaFrame *LoRaModule::readFrame() {
   error" RadioLib however doesn't expose a function for explicit frequency
   correction
   **/
-  if (this->type == ChipType::TYPE_SX1278) {
+  if (isSX1278()) {
     SX1278 *sx = (SX1278 *)this->phys;
     result->setRssi(sx->getRSSI());
     result->setSnr(sx->getSNR());
     result->setFrequencyError(sx->getFrequencyError(false));
-  } else if (this->type == ChipType::TYPE_SX1276) {
+  } else if (isSX1276()) {
     SX1276 *sx = (SX1276 *)this->phys;
     result->setRssi(sx->getRSSI());
     result->setSnr(sx->getSNR());
@@ -185,10 +185,10 @@ LoRaFrame *LoRaModule::readFrame() {
 void LoRaModule::stopRx() {
   log_i("RX stopped");
   int16_t status = ERR_NONE;
-  if (this->type == ChipType::TYPE_SX1278) {
+  if (isSX1278()) {
     SX1278 *sx = (SX1278 *)this->phys;
     status = sx->sleep();
-  } else if (this->type == ChipType::TYPE_SX1276) {
+  } else if (isSX1276()) {
     SX1276 *sx = (SX1276 *)this->phys;
     status = sx->sleep();
   }
@@ -216,11 +216,11 @@ int LoRaModule::getTempRaw(int8_t *value) {
   if (this->phys == NULL) {
     return -1;
   }
-  if (this->type == ChipType::TYPE_SX1278) {
+  if (isSX1278()) {
     SX1278 *sx = (SX1278 *)this->phys;
     *value = sx->getTempRaw();
     return 0;
-  } else if (this->type == ChipType::TYPE_SX1276) {
+  } else if (isSX1276()) {
     SX1276 *sx = (SX1276 *)this->phys;
     *value = sx->getTempRaw();
     return 0;
@@ -234,10 +234,10 @@ int16_t LoRaModule::tx(uint8_t *data, size_t dataLength, float freq, float bw, u
     log_e("unable to init tx: %d", status);
     return status;
   }
-  if (this->type == ChipType::TYPE_SX1278) {
+  if (isSX1278()) {
     SX1278 *sx = (SX1278 *)this->phys;
     status = sx->transmit(data, dataLength);
-  } else if (this->type == ChipType::TYPE_SX1276) {
+  } else if (isSX1276()) {
     SX1276 *sx = (SX1276 *)this->phys;
     status = sx->transmit(data, dataLength);
   } else {
@@ -250,7 +250,7 @@ int16_t LoRaModule::tx(uint8_t *data, size_t dataLength, float freq, float bw, u
 }
 
 int16_t LoRaModule::begin(float freq, float bw, uint8_t sf, uint8_t cr, uint8_t syncWord, int8_t power, uint16_t preambleLength, uint8_t gain, uint8_t ldro) {
-  if (this->type == ChipType::TYPE_SX1278) {
+  if (isSX1278()) {
     SX1278 *sx = (SX1278 *)this->phys;
 
     int16_t status = sx->setFrequency(freq);
@@ -296,7 +296,7 @@ int16_t LoRaModule::begin(float freq, float bw, uint8_t sf, uint8_t cr, uint8_t 
     RADIOLIB_ASSERT(status);
     return ERR_NONE;
 
-  } else if (this->type == ChipType::TYPE_SX1276) {
+  } else if (isSX1276()) {
     SX1276 *sx = (SX1276 *)phys;
 
     int16_t status = sx->setFrequency(freq);
@@ -344,6 +344,20 @@ int16_t LoRaModule::begin(float freq, float bw, uint8_t sf, uint8_t cr, uint8_t 
   } else {
     return ERR_UNKNOWN;
   }
+}
+
+bool LoRaModule::isSX1278() {
+  if (this->type == ChipType::TYPE_SX1278) {
+    return true;
+  }
+  return false;
+}
+
+bool LoRaModule::isSX1276() {
+  if (this->type == ChipType::TYPE_SX1276_868 || this->type == ChipType::TYPE_SX1276_433 || this->type == ChipType::TYPE_SX1276) {
+    return true;
+  }
+  return false;
 }
 
 LoRaModule::~LoRaModule() {

@@ -35,6 +35,8 @@ class LoRaModule {
   LoRaFrame *readFrame();
   void reset();
   int16_t begin(float freq, float bw, uint8_t sf, uint8_t cr, uint8_t syncWord, int8_t power, uint16_t preambleLength, uint8_t gain, uint8_t ldro);
+  bool isSX1278();
+  bool isSX1276();
 };
 
 #endif

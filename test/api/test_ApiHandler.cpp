@@ -59,6 +59,17 @@ void test_success_start(void) {
   assertStatus(&output, "SUCCESS");
 }
 
+void test_double_start(void) {
+  ApiHandler handler(&web, &mock, NULL);
+  String output;
+  int code = handler.handleStart(VALID_RX_REQUEST, &output);
+  TEST_ASSERT_EQUAL_INT(200, code);
+  assertStatus(&output, "SUCCESS");
+  code = handler.handleStart(VALID_RX_REQUEST, &output);
+  TEST_ASSERT_EQUAL_INT(200, code);
+  assertStatus(&output, "FAILURE");
+}
+
 void test_no_request(void) {
   ApiHandler handler(&web, &mock, NULL);
   String output;
@@ -213,6 +224,7 @@ void setup() {
   RUN_TEST(test_invalid_lora_tx_code);
   RUN_TEST(test_invalid_tx_data_request);
   RUN_TEST(test_success_tx);
+  RUN_TEST(test_double_start);
   UNITY_END();
 }
 

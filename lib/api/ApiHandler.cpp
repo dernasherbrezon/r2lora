@@ -35,16 +35,17 @@ int ApiHandler::handleStart(String &body, String *output) {
     this->sendFailure("unable to parse request", output);
     return 200;
   }
-  float freq = doc["freq"];                         // = (434.0F)
-  float bw = doc["bw"];                             // = (125.0F)
-  uint8_t sf = doc["sf"];                           // = (uint8_t)9U
-  uint8_t cr = doc["cr"];                           // = (uint8_t)7U
-  uint8_t syncWord = doc["syncWord"];               // = (uint8_t)18U
-  uint16_t preambleLength = doc["preambleLength"];  // = (uint16_t)8U
-  uint8_t gain = doc["gain"];                       // = (uint8_t)0U
-  uint8_t ldro = doc["ldro"];                       // 0 - auto, 1 - enable, 2 - disable
-  log_i("received rx request on: %fMhz", freq);
-  int code = lora->startRx(freq, bw, sf, cr, syncWord, preambleLength, gain, ldro);
+  LoraState req;
+  req.freq = doc["freq"];                      // = (434.0F)
+  req.bw = doc["bw"];                          // = (125.0F)
+  req.sf = doc["sf"];                          // = (uint8_t)9U
+  req.cr = doc["cr"];                          // = (uint8_t)7U
+  req.syncWord = doc["syncWord"];              // = (uint8_t)18U
+  req.preambleLength = doc["preambleLength"];  // = (uint16_t)8U
+  req.gain = doc["gain"];                      // = (uint8_t)0U
+  req.ldro = doc["ldro"];                      // 0 - auto, 1 - enable, 2 - disable
+  log_i("received rx request on: %fMhz", req.freq);
+  int code = lora->startLoraRx(&req);
   if (code != 0) {
     this->sendFailure("unable to start lora", output);
     return 200;
@@ -69,14 +70,15 @@ int ApiHandler::handleTx(String &body, String *output) {
     this->sendFailure("unable to parse tx request", output);
     return 200;
   }
+  LoraState req;
   const char *data = doc["data"];
-  int8_t power = doc["power"];
-  float freq = doc["freq"];                         // = (434.0F)
-  float bw = doc["bw"];                             // = (125.0F)
-  uint8_t sf = doc["sf"];                           // = (uint8_t)9U
-  uint8_t cr = doc["cr"];                           // = (uint8_t)7U
-  uint8_t syncWord = doc["syncWord"];               // = (uint8_t)18U
-  uint16_t preambleLength = doc["preambleLength"];  // = (uint16_t)8U
+  req.power = doc["power"];
+  req.freq = doc["freq"];                      // = (434.0F)
+  req.bw = doc["bw"];                          // = (125.0F)
+  req.sf = doc["sf"];                          // = (uint8_t)9U
+  req.cr = doc["cr"];                          // = (uint8_t)7U
+  req.syncWord = doc["syncWord"];              // = (uint8_t)18U
+  req.preambleLength = doc["preambleLength"];  // = (uint16_t)8U
   uint8_t *binaryData = NULL;
   size_t binaryDataLength = 0;
   int code = convertStringToHex(data, &binaryData, &binaryDataLength);
@@ -85,7 +87,7 @@ int ApiHandler::handleTx(String &body, String *output) {
     return 200;
   }
   log_i("tx data: %s", data);
-  code = lora->tx(binaryData, binaryDataLength, freq, bw, sf, cr, syncWord, preambleLength, power);
+  code = lora->loraTx(binaryData, binaryDataLength, &req);
   free(binaryData);
   if (code != 0) {
     this->sendFailure("unable to transmit", output);

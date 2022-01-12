@@ -27,27 +27,19 @@ int16_t LoRaModule::init(Chip *chip) {
   this->module = new Module(PIN_CS, PIN_DI0, PIN_RST);
   if (isSX1278()) {
     SX1278 *sx = new SX1278(module);
-    // init with default settings.
-    // rx/tx will override essential
-    int16_t status = sx->begin();
-    if (status != ERR_NONE) {
-      log_e("unable to initialize lora chip: %d", status);
-      return status;
-    }
     this->phys = sx;
   } else if (isSX1276()) {
     SX1276 *sx = new SX1276(module);
-    int16_t status = sx->begin();
-    if (status != ERR_NONE) {
-      log_e("unable to initialize lora chip: %d", status);
-      return status;
-    }
     this->phys = sx;
   } else {
     log_e("unsupported chip found: %d", chip->getType());
     return ERR_CHIP_NOT_FOUND;
   }
   this->type = chip->getType();
+  this->fsk.syncWord = NULL;
+  this->fsk.syncWordLength = 0;
+  this->ook.syncWord = NULL;
+  this->ook.syncWordLength = 0;
   return ERR_NONE;
 }
 
@@ -65,6 +57,18 @@ void LoRaModule::reset() {
   }
   // some default type
   this->type = ChipType::TYPE_SX1278;
+  this->activeModem = ModemType::NONE;
+  this->fskInitialized = false;
+  if (this->fsk.syncWord != NULL) {
+    free(this->fsk.syncWord);
+    this->fsk.syncWord = NULL;
+  }
+  if (this->ook.syncWord != NULL) {
+    free(this->ook.syncWord);
+    this->ook.syncWord = NULL;
+  }
+  this->loraInitialized = false;
+  this->ookInitialized = false;
 }
 
 // this function is called when a complete packet
@@ -81,12 +85,43 @@ void setFlag(void) {
   receivedFlag = true;
 }
 
-int16_t LoRaModule::startRx(float freq, float bw, uint8_t sf, uint8_t cr, uint8_t syncWord, uint16_t preambleLength, uint8_t gain, uint8_t ldro) {
-  int16_t status = this->begin(freq, bw, sf, cr, syncWord, 10, preambleLength, gain, ldro);
+int16_t LoRaModule::startLoraRx(LoraState *request) {
+  if (loraInitialized) {
+    request->power = lora.power;
+  }
+  int16_t status = syncLoraModemState(request);
   if (status != ERR_NONE) {
-    log_e("unable to init rx: %d", status);
+    log_e("unable to init rx lora: %d", status);
     return status;
   }
+  return startReceive();
+}
+
+int16_t LoRaModule::startFskRx(FskState *request) {
+  if (fskInitialized) {
+    request->power = fsk.power;
+  }
+  int16_t status = syncFskModemState(request);
+  if (status != ERR_NONE) {
+    log_e("unable to init rx fsk: %d", status);
+    return status;
+  }
+  return startReceive();
+}
+
+int16_t LoRaModule::startOokRx(FskState *request) {
+  if (ookInitialized) {
+    request->power = ook.power;
+  }
+  int16_t status = syncOokModemState(request);
+  if (status != ERR_NONE) {
+    log_e("unable to init rx ook: %d", status);
+    return status;
+  }
+  return startReceive();
+}
+
+int16_t LoRaModule::startReceive() {
   SX127x *genericSx;
   if (isSX1278()) {
     SX1278 *sx = (SX1278 *)phys;
@@ -98,7 +133,7 @@ int16_t LoRaModule::startRx(float freq, float bw, uint8_t sf, uint8_t cr, uint8_
     return ERR_CHIP_NOT_FOUND;
   }
   genericSx->setDio0Action(setFlag);
-  status = genericSx->startReceive();
+  int16_t status = genericSx->startReceive();
   if (status == ERR_NONE) {
     this->receivingData = true;
     log_i("RX started");
@@ -109,6 +144,339 @@ int16_t LoRaModule::startRx(float freq, float bw, uint8_t sf, uint8_t cr, uint8_
     log_e("unable to start rx: %d", status);
   }
   return status;
+}
+
+int16_t LoRaModule::syncLoraModemState(LoraState *request) {
+  int16_t status;
+  if (isSX1278()) {
+    SX1278 *sx = (SX1278 *)this->phys;
+    if (activeModem != ModemType::LORA) {
+      status = sx->begin();
+      // modem changed. force update of all parameters
+      loraInitialized = false;
+      RADIOLIB_ASSERT(status);
+    }
+    if (!loraInitialized || lora.freq != request->freq) {
+      status = sx->setFrequency(request->freq);
+      RADIOLIB_ASSERT(status);
+    }
+    if (!loraInitialized || lora.bw != request->bw) {
+      status = sx->setBandwidth(request->bw);
+      RADIOLIB_ASSERT(status);
+    }
+    if (!loraInitialized || lora.cr != request->cr) {
+      status = sx->setCodingRate(request->cr);
+      RADIOLIB_ASSERT(status);
+    }
+    if (!loraInitialized || lora.gain != request->gain) {
+      status = sx->setGain(request->gain);
+      RADIOLIB_ASSERT(status);
+    }
+    if (!loraInitialized || lora.ldro != request->ldro) {
+      status = setLdro(request->ldro);
+      RADIOLIB_ASSERT(status);
+    }
+    if (!loraInitialized || lora.power != request->power) {
+      status = sx->setOutputPower(request->power);
+      RADIOLIB_ASSERT(status);
+    }
+    if (!loraInitialized || lora.preambleLength != request->preambleLength) {
+      status = sx->setPreambleLength(request->preambleLength);
+      RADIOLIB_ASSERT(status);
+    }
+    if (!loraInitialized || lora.sf != request->sf) {
+      status = sx->setSpreadingFactor(request->sf);
+      RADIOLIB_ASSERT(status);
+    }
+    if (!loraInitialized || lora.syncWord != request->syncWord) {
+      status = sx->setSyncWord(request->syncWord);
+      RADIOLIB_ASSERT(status);
+    }
+  } else if (isSX1276()) {
+    SX1276 *sx = (SX1276 *)phys;
+    if (activeModem != ModemType::LORA) {
+      status = sx->begin();
+      // modem changed. force update of all parameters
+      loraInitialized = false;
+      RADIOLIB_ASSERT(status);
+    }
+    if (!loraInitialized || lora.freq != request->freq) {
+      status = sx->setFrequency(request->freq);
+      RADIOLIB_ASSERT(status);
+    }
+    if (!loraInitialized || lora.bw != request->bw) {
+      status = sx->setBandwidth(request->bw);
+      RADIOLIB_ASSERT(status);
+    }
+    if (!loraInitialized || lora.cr != request->cr) {
+      status = sx->setCodingRate(request->cr);
+      RADIOLIB_ASSERT(status);
+    }
+    if (!loraInitialized || lora.gain != request->gain) {
+      status = sx->setGain(request->gain);
+      RADIOLIB_ASSERT(status);
+    }
+    if (!loraInitialized || lora.ldro != request->ldro) {
+      status = setLdro(request->ldro);
+      RADIOLIB_ASSERT(status);
+    }
+    if (!loraInitialized || lora.power != request->power) {
+      status = sx->setOutputPower(request->power);
+      RADIOLIB_ASSERT(status);
+    }
+    if (!loraInitialized || lora.preambleLength != request->preambleLength) {
+      status = sx->setPreambleLength(request->preambleLength);
+      RADIOLIB_ASSERT(status);
+    }
+    if (!loraInitialized || lora.sf != request->sf) {
+      status = sx->setSpreadingFactor(request->sf);
+      RADIOLIB_ASSERT(status);
+    }
+    if (!loraInitialized || lora.syncWord != request->syncWord) {
+      status = sx->setSyncWord(request->syncWord);
+      RADIOLIB_ASSERT(status);
+    }
+  } else {
+    return ERR_CHIP_NOT_FOUND;
+  }
+  memcpy(&lora, request, sizeof(LoraState));
+  loraInitialized = true;
+  activeModem = ModemType::LORA;
+  return ERR_NONE;
+}
+
+int16_t LoRaModule::syncFskModemState(FskState *request) {
+  int16_t status;
+  if (isSX1278()) {
+    SX1278 *sx = (SX1278 *)this->phys;
+    if (activeModem != ModemType::FSK) {
+      status = sx->begin();
+      // modem changed. force update of all parameters
+      fskInitialized = false;
+      RADIOLIB_ASSERT(status);
+
+      status = sx->setOOK(false);
+      RADIOLIB_ASSERT(status);
+    }
+
+    if (!fskInitialized || fsk.br != request->br) {
+      status = sx->setBitRate(request->br);
+      RADIOLIB_ASSERT(status);
+    }
+    if (!fskInitialized || fsk.freq != request->freq) {
+      status = sx->setFrequency(request->freq);
+      RADIOLIB_ASSERT(status);
+    }
+    if (!fskInitialized || fsk.freqDev != request->freqDev) {
+      status = sx->setFrequencyDeviation(request->freqDev);
+      RADIOLIB_ASSERT(status);
+    }
+    if (!fskInitialized || fsk.gain != request->gain) {
+      status = sx->setGain(request->gain);
+      RADIOLIB_ASSERT(status);
+    }
+    if (!fskInitialized || fsk.power != request->power) {
+      status = sx->setOutputPower(request->power);
+      RADIOLIB_ASSERT(status);
+    }
+    if (!fskInitialized || fsk.preambleLength != request->preambleLength) {
+      status = sx->setPreambleLength(request->preambleLength);
+      RADIOLIB_ASSERT(status);
+    }
+    if (!fskInitialized || fsk.rxBw != request->rxBw) {
+      status = sx->setRxBandwidth(request->rxBw);
+      RADIOLIB_ASSERT(status);
+    }
+    if (!fskInitialized || fsk.sh != request->sh) {
+      status = sx->setDataShaping(request->sh);
+      RADIOLIB_ASSERT(status);
+    }
+    if (!fskInitialized || checkIfSyncwordEqual(&fsk, request)) {
+      status = sx->setSyncWord(request->syncWord, request->syncWordLength);
+      RADIOLIB_ASSERT(status);
+    }
+
+  } else if (isSX1276()) {
+    SX1276 *sx = (SX1276 *)phys;
+    if (activeModem != ModemType::FSK) {
+      status = sx->begin();
+      // modem changed. force update of all parameters
+      fskInitialized = false;
+      RADIOLIB_ASSERT(status);
+
+      status = sx->setOOK(false);
+      RADIOLIB_ASSERT(status);
+    }
+
+    if (!fskInitialized || fsk.br != request->br) {
+      status = sx->setBitRate(request->br);
+      RADIOLIB_ASSERT(status);
+    }
+    if (!fskInitialized || fsk.freq != request->freq) {
+      status = sx->setFrequency(request->freq);
+      RADIOLIB_ASSERT(status);
+    }
+    if (!fskInitialized || fsk.freqDev != request->freqDev) {
+      status = sx->setFrequencyDeviation(request->freqDev);
+      RADIOLIB_ASSERT(status);
+    }
+    if (!fskInitialized || fsk.gain != request->gain) {
+      status = sx->setGain(request->gain);
+      RADIOLIB_ASSERT(status);
+    }
+    if (!fskInitialized || fsk.power != request->power) {
+      status = sx->setOutputPower(request->power);
+      RADIOLIB_ASSERT(status);
+    }
+    if (!fskInitialized || fsk.preambleLength != request->preambleLength) {
+      status = sx->setPreambleLength(request->preambleLength);
+      RADIOLIB_ASSERT(status);
+    }
+    if (!fskInitialized || fsk.rxBw != request->rxBw) {
+      status = sx->setRxBandwidth(request->rxBw);
+      RADIOLIB_ASSERT(status);
+    }
+    if (!fskInitialized || fsk.sh != request->sh) {
+      status = sx->setDataShaping(request->sh);
+      RADIOLIB_ASSERT(status);
+    }
+    if (!fskInitialized || checkIfSyncwordEqual(&fsk, request)) {
+      status = sx->setSyncWord(request->syncWord, request->syncWordLength);
+      RADIOLIB_ASSERT(status);
+    }
+  } else {
+    return ERR_CHIP_NOT_FOUND;
+  }
+  if (fsk.syncWord != NULL) {
+    free(fsk.syncWord);
+  }
+  memcpy(&fsk, request, sizeof(FskState));
+  fsk.syncWord = (uint8_t *)malloc(sizeof(uint8_t) * request->syncWordLength);
+  if (fsk.syncWord == NULL) {
+    return ERR_UNKNOWN;
+  }
+  memcpy(fsk.syncWord, request->syncWord, sizeof(uint8_t) * request->syncWordLength);
+
+  fskInitialized = true;
+  activeModem = ModemType::FSK;
+  return ERR_NONE;
+}
+
+int16_t LoRaModule::syncOokModemState(FskState *request) {
+  int16_t status;
+  if (isSX1278()) {
+    SX1278 *sx = (SX1278 *)this->phys;
+    if (activeModem != ModemType::OOK) {
+      status = sx->begin();
+      // modem changed. force update of all parameters
+      ookInitialized = false;
+      RADIOLIB_ASSERT(status);
+
+      status = sx->setOOK(true);
+      RADIOLIB_ASSERT(status);
+    }
+
+    if (!ookInitialized || ook.br != request->br) {
+      status = sx->setBitRate(request->br);
+      RADIOLIB_ASSERT(status);
+    }
+    if (!ookInitialized || ook.freq != request->freq) {
+      status = sx->setFrequency(request->freq);
+      RADIOLIB_ASSERT(status);
+    }
+    if (!ookInitialized || ook.freqDev != request->freqDev) {
+      status = sx->setFrequencyDeviation(request->freqDev);
+      RADIOLIB_ASSERT(status);
+    }
+    if (!ookInitialized || ook.gain != request->gain) {
+      status = sx->setGain(request->gain);
+      RADIOLIB_ASSERT(status);
+    }
+    if (!ookInitialized || ook.power != request->power) {
+      status = sx->setOutputPower(request->power);
+      RADIOLIB_ASSERT(status);
+    }
+    if (!ookInitialized || ook.preambleLength != request->preambleLength) {
+      status = sx->setPreambleLength(request->preambleLength);
+      RADIOLIB_ASSERT(status);
+    }
+    if (!ookInitialized || ook.rxBw != request->rxBw) {
+      status = sx->setRxBandwidth(request->rxBw);
+      RADIOLIB_ASSERT(status);
+    }
+    if (!ookInitialized || ook.sh != request->sh) {
+      status = sx->setDataShapingOOK(request->sh);
+      RADIOLIB_ASSERT(status);
+    }
+    if (!ookInitialized || checkIfSyncwordEqual(&ook, request)) {
+      status = sx->setSyncWord(request->syncWord, request->syncWordLength);
+      RADIOLIB_ASSERT(status);
+    }
+
+  } else if (isSX1276()) {
+    SX1276 *sx = (SX1276 *)phys;
+    if (activeModem != ModemType::OOK) {
+      status = sx->begin();
+      // modem changed. force update of all parameters
+      ookInitialized = false;
+      RADIOLIB_ASSERT(status);
+
+      status = sx->setOOK(true);
+      RADIOLIB_ASSERT(status);
+    }
+
+    if (!ookInitialized || ook.br != request->br) {
+      status = sx->setBitRate(request->br);
+      RADIOLIB_ASSERT(status);
+    }
+    if (!ookInitialized || ook.freq != request->freq) {
+      status = sx->setFrequency(request->freq);
+      RADIOLIB_ASSERT(status);
+    }
+    if (!ookInitialized || ook.freqDev != request->freqDev) {
+      status = sx->setFrequencyDeviation(request->freqDev);
+      RADIOLIB_ASSERT(status);
+    }
+    if (!ookInitialized || ook.gain != request->gain) {
+      status = sx->setGain(request->gain);
+      RADIOLIB_ASSERT(status);
+    }
+    if (!ookInitialized || ook.power != request->power) {
+      status = sx->setOutputPower(request->power);
+      RADIOLIB_ASSERT(status);
+    }
+    if (!ookInitialized || ook.preambleLength != request->preambleLength) {
+      status = sx->setPreambleLength(request->preambleLength);
+      RADIOLIB_ASSERT(status);
+    }
+    if (!ookInitialized || ook.rxBw != request->rxBw) {
+      status = sx->setRxBandwidth(request->rxBw);
+      RADIOLIB_ASSERT(status);
+    }
+    if (!ookInitialized || ook.sh != request->sh) {
+      status = sx->setDataShapingOOK(request->sh);
+      RADIOLIB_ASSERT(status);
+    }
+    if (!ookInitialized || checkIfSyncwordEqual(&ook, request)) {
+      status = sx->setSyncWord(request->syncWord, request->syncWordLength);
+      RADIOLIB_ASSERT(status);
+    }
+  } else {
+    return ERR_CHIP_NOT_FOUND;
+  }
+  if (ook.syncWord != NULL) {
+    free(ook.syncWord);
+  }
+  memcpy(&ook, request, sizeof(FskState));
+  ook.syncWord = (uint8_t *)malloc(sizeof(uint8_t) * request->syncWordLength);
+  if (ook.syncWord == NULL) {
+    return ERR_UNKNOWN;
+  }
+  memcpy(ook.syncWord, request->syncWord, sizeof(uint8_t) * request->syncWordLength);
+
+  ookInitialized = true;
+  activeModem = ModemType::OOK;
+  return ERR_NONE;
 }
 
 LoRaFrame *LoRaModule::loop() {
@@ -228,18 +596,50 @@ int LoRaModule::getTempRaw(int8_t *value) {
   return -1;
 }
 
-int16_t LoRaModule::tx(uint8_t *data, size_t dataLength, float freq, float bw, uint8_t sf, uint8_t cr, uint8_t syncWord, uint16_t preambleLength, int8_t power) {
-  int16_t status = this->begin(freq, bw, sf, cr, syncWord, power, preambleLength, 0, 0);
+int16_t LoRaModule::loraTx(uint8_t *data, size_t dataLength, LoraState *request) {
+  if (loraInitialized) {
+    request->gain = lora.gain;
+  }
+  int16_t status = syncLoraModemState(request);
   if (status != ERR_NONE) {
-    log_e("unable to init tx: %d", status);
+    log_e("unable to init tx lora: %d", status);
     return status;
   }
+  return transmit(data, dataLength);
+}
+
+int16_t LoRaModule::fskTx(uint8_t *data, size_t dataLength, FskState *request) {
+  if (fskInitialized) {
+    request->gain = fsk.gain;
+  }
+  int16_t status = syncFskModemState(request);
+  if (status != ERR_NONE) {
+    log_e("unable to init tx fsk: %d", status);
+    return status;
+  }
+  return transmit(data, dataLength);
+}
+
+int16_t LoRaModule::ookTx(uint8_t *data, size_t dataLength, FskState *request) {
+  if (ookInitialized) {
+    request->gain = ook.gain;
+  }
+  int16_t status = syncOokModemState(request);
+  if (status != ERR_NONE) {
+    log_e("unable to init tx ook: %d", status);
+    return status;
+  }
+  return transmit(data, dataLength);
+}
+
+int16_t LoRaModule::transmit(uint8_t *data, size_t len) {
+  int16_t status;
   if (isSX1278()) {
     SX1278 *sx = (SX1278 *)this->phys;
-    status = sx->transmit(data, dataLength);
+    status = sx->transmit(data, len);
   } else if (isSX1276()) {
     SX1276 *sx = (SX1276 *)this->phys;
-    status = sx->transmit(data, dataLength);
+    status = sx->transmit(data, len);
   } else {
     status = ERR_CHIP_NOT_FOUND;
   }
@@ -247,103 +647,6 @@ int16_t LoRaModule::tx(uint8_t *data, size_t dataLength, float freq, float bw, u
     log_e("unable to tx: %d", status);
   }
   return status;
-}
-
-int16_t LoRaModule::begin(float freq, float bw, uint8_t sf, uint8_t cr, uint8_t syncWord, int8_t power, uint16_t preambleLength, uint8_t gain, uint8_t ldro) {
-  if (isSX1278()) {
-    SX1278 *sx = (SX1278 *)this->phys;
-
-    int16_t status = sx->setFrequency(freq);
-    RADIOLIB_ASSERT(status);
-
-    status = sx->setSyncWord(syncWord);
-    RADIOLIB_ASSERT(status);
-
-    status = sx->setPreambleLength(preambleLength);
-    RADIOLIB_ASSERT(status);
-
-    status = sx->setBandwidth(bw);
-    RADIOLIB_ASSERT(status);
-
-    status = sx->setSpreadingFactor(sf);
-    RADIOLIB_ASSERT(status);
-
-    status = sx->setCodingRate(cr);
-    RADIOLIB_ASSERT(status);
-
-    status = sx->setOutputPower(power);
-    RADIOLIB_ASSERT(status);
-
-    status = sx->setGain(gain);
-    RADIOLIB_ASSERT(status);
-
-    switch (ldro) {
-      case LDRO_AUTO:
-        status = sx->autoLDRO();
-        break;
-      case LDRO_ON:
-        status = sx->forceLDRO(true);
-        break;
-      case LDRO_OFF:
-        status = sx->forceLDRO(false);
-        break;
-      default:
-        break;
-    }
-    RADIOLIB_ASSERT(status);
-
-    status = sx->setCRC(true);
-    RADIOLIB_ASSERT(status);
-    return ERR_NONE;
-
-  } else if (isSX1276()) {
-    SX1276 *sx = (SX1276 *)phys;
-
-    int16_t status = sx->setFrequency(freq);
-    RADIOLIB_ASSERT(status);
-
-    status = sx->setSyncWord(syncWord);
-    RADIOLIB_ASSERT(status);
-
-    status = sx->setPreambleLength(preambleLength);
-    RADIOLIB_ASSERT(status);
-
-    status = sx->setBandwidth(bw);
-    RADIOLIB_ASSERT(status);
-
-    status = sx->setSpreadingFactor(sf);
-    RADIOLIB_ASSERT(status);
-
-    status = sx->setCodingRate(cr);
-    RADIOLIB_ASSERT(status);
-
-    status = sx->setOutputPower(power);
-    RADIOLIB_ASSERT(status);
-
-    status = sx->setGain(gain);
-    RADIOLIB_ASSERT(status);
-
-    switch (ldro) {
-      case LDRO_AUTO:
-        status = sx->autoLDRO();
-        break;
-      case LDRO_ON:
-        status = sx->forceLDRO(true);
-        break;
-      case LDRO_OFF:
-        status = sx->forceLDRO(false);
-        break;
-      default:
-        break;
-    }
-    RADIOLIB_ASSERT(status);
-
-    status = sx->setCRC(true);
-    RADIOLIB_ASSERT(status);
-    return ERR_NONE;
-  } else {
-    return ERR_UNKNOWN;
-  }
 }
 
 bool LoRaModule::isSX1278() {
@@ -358,6 +661,56 @@ bool LoRaModule::isSX1276() {
     return true;
   }
   return false;
+}
+
+int16_t LoRaModule::setLdro(uint8_t ldro) {
+  int16_t status = ERR_NONE;
+  if (isSX1278()) {
+    SX1278 *sx = (SX1278 *)this->phys;
+    switch (ldro) {
+      case LDRO_AUTO:
+        status = sx->autoLDRO();
+        break;
+      case LDRO_ON:
+        status = sx->forceLDRO(true);
+        break;
+      case LDRO_OFF:
+        status = sx->forceLDRO(false);
+        break;
+      default:
+        break;
+    }
+  } else if (isSX1276()) {
+    SX1276 *sx = (SX1276 *)phys;
+    switch (ldro) {
+      case LDRO_AUTO:
+        status = sx->autoLDRO();
+        break;
+      case LDRO_ON:
+        status = sx->forceLDRO(true);
+        break;
+      case LDRO_OFF:
+        status = sx->forceLDRO(false);
+        break;
+      default:
+        break;
+    }
+  } else {
+    status = ERR_CHIP_NOT_FOUND;
+  }
+  return status;
+}
+
+bool LoRaModule::checkIfSyncwordEqual(FskState *f, FskState *s) {
+  if (f->syncWordLength != s->syncWordLength) {
+    return false;
+  }
+  for (size_t i = 0; i < s->syncWordLength; i++) {
+    if (f->syncWord[i] != s->syncWord[i]) {
+      return false;
+    }
+  }
+  return true;
 }
 
 LoRaModule::~LoRaModule() {

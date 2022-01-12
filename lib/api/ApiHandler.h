@@ -17,6 +17,9 @@ class ApiHandler {
   int handlePull(String &body, String *output);
   int handleTx(String &body, String *output);
 
+  int handleFskStart(String &body, String *output);
+  int handleFskTx(String &body, String *output);
+
  private:
   void sendFailure(const char *message, String *output);
   void sendSuccess(String *output);

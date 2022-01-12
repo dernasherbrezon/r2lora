@@ -44,6 +44,7 @@ int ApiHandler::handleStart(String &body, String *output) {
   req.preambleLength = doc["preambleLength"];  // = (uint16_t)8U
   req.gain = doc["gain"];                      // = (uint8_t)0U
   req.ldro = doc["ldro"];                      // 0 - auto, 1 - enable, 2 - disable
+  req.power = 10;
   log_i("received rx request on: %fMhz", req.freq);
   int code = lora->startLoraRx(&req);
   if (code != 0) {
@@ -79,6 +80,7 @@ int ApiHandler::handleTx(String &body, String *output) {
   req.cr = doc["cr"];                          // = (uint8_t)7U
   req.syncWord = doc["syncWord"];              // = (uint8_t)18U
   req.preambleLength = doc["preambleLength"];  // = (uint16_t)8U
+  req.gain = 0;
   uint8_t *binaryData = NULL;
   size_t binaryDataLength = 0;
   int code = convertStringToHex(data, &binaryData, &binaryDataLength);

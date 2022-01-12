@@ -96,9 +96,9 @@ int ApiHandler::handleFskTx(String &body, String *output) {
   const char *data = doc["data"];
   req.power = doc["power"];
   req.freq = doc["freq"];   // = (434.0F)
-  req.br = doc["bw"];       // = (125.0F)
-  req.freqDev = doc["sf"];  // = (uint8_t)9U
-  req.rxBw = doc["cr"];     // = (uint8_t)7U
+  req.br = doc["br"];       // = (125.0F)
+  req.freqDev = doc["freqDev"];  // = (uint8_t)9U
+  req.rxBw = doc["rxBw"];     // = (uint8_t)7U
   if (doc.containsKey("syncWordLength")) {
     req.syncWordLength = doc["syncWordLength"];
     const char *data = doc["syncWord"];

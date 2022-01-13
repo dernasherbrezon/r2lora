@@ -21,22 +21,22 @@ ApiHandler::ApiHandler(WebServer *web, LoRaModule *lora, Configurator *config) {
   std::function<int(String &, String *)> txFunc = std::bind(&ApiHandler::handleTx, this, std::placeholders::_1, std::placeholders::_2);
   this->web->addHandler(new JsonHandler(txFunc, "/lora/tx/send", HTTP_POST, config));
 
-  std::function<int(String &, String *)> startFskFunc = std::bind(&ApiHandler::handleFskStart, this, std::placeholders::_1, std::placeholders::_2);
+  std::function<int(String &, String *)> startFskFunc = std::bind(&ApiHandler::handleFskStart, this, false, std::placeholders::_1, std::placeholders::_2);
   this->web->addHandler(new JsonHandler(startFskFunc, "/fsk/rx/start", HTTP_POST, config));
 
-  std::function<int(String &, String *)> txFskFunc = std::bind(&ApiHandler::handleFskTx, this, std::placeholders::_1, std::placeholders::_2);
+  std::function<int(String &, String *)> txFskFunc = std::bind(&ApiHandler::handleFskTx, this, false, std::placeholders::_1, std::placeholders::_2);
   this->web->addHandler(new JsonHandler(txFskFunc, "/fsk/tx/send", HTTP_POST, config));
 
-  std::function<int(String &, String *)> startOokFunc = std::bind(&ApiHandler::handleOokStart, this, std::placeholders::_1, std::placeholders::_2);
+  std::function<int(String &, String *)> startOokFunc = std::bind(&ApiHandler::handleFskStart, this, true, std::placeholders::_1, std::placeholders::_2);
   this->web->addHandler(new JsonHandler(startOokFunc, "/ook/rx/start", HTTP_POST, config));
 
-  std::function<int(String &, String *)> txOokFunc = std::bind(&ApiHandler::handleOokTx, this, std::placeholders::_1, std::placeholders::_2);
+  std::function<int(String &, String *)> txOokFunc = std::bind(&ApiHandler::handleFskTx, this, true, std::placeholders::_1, std::placeholders::_2);
   this->web->addHandler(new JsonHandler(txOokFunc, "/ook/tx/send", HTTP_POST, config));
 
   log_i("api handler was initialized");
 }
 
-int ApiHandler::handleFskStart(String &body, String *output) {
+int ApiHandler::handleFskStart(bool ook, String &body, String *output) {
   if (body.isEmpty()) {
     this->sendFailure("request is empty", output);
     return 200;
@@ -48,6 +48,7 @@ int ApiHandler::handleFskStart(String &body, String *output) {
     return 200;
   }
   FskState req;
+  req.ook = ook;
   int code = readFskRequest(doc, &req);
   if (code != 0) {
     this->sendFailure("invalid hexadecimal string in the syncWord field", output);
@@ -67,7 +68,7 @@ int ApiHandler::handleFskStart(String &body, String *output) {
   return 200;
 }
 
-int ApiHandler::handleFskTx(String &body, String *output) {
+int ApiHandler::handleFskTx(bool ook, String &body, String *output) {
   if (body.isEmpty()) {
     this->sendFailure("request is empty", output);
     return 200;
@@ -83,6 +84,7 @@ int ApiHandler::handleFskTx(String &body, String *output) {
     return 200;
   }
   FskState req;
+  req.ook = ook;
   int code = readFskRequest(doc, &req);
   if (code != 0) {
     this->sendFailure("invalid hexadecimal string in the syncWord field", output);
@@ -209,83 +211,6 @@ int ApiHandler::handleStop(String &body, String *output) {
   this->receiving = false;
   lora->stopRx();
   return this->handlePull(body, output);
-}
-
-int ApiHandler::handleOokStart(String &body, String *output) {
-  if (body.isEmpty()) {
-    this->sendFailure("request is empty", output);
-    return 200;
-  }
-  StaticJsonDocument<256> doc;
-  DeserializationError error = deserializeJson(doc, body);
-  if (error) {
-    this->sendFailure("unable to parse request", output);
-    return 200;
-  }
-  FskState req;
-  int code = readFskRequest(doc, &req);
-  if (code != 0) {
-    this->sendFailure("invalid hexadecimal string in the syncWord field", output);
-    return 200;
-  }
-  log_i("received ook rx request on: %fMhz", req.freq);
-  code = lora->startOokRx(&req);
-  if (req.syncWord != NULL) {
-    free(req.syncWord);
-  }
-  if (code != 0) {
-    this->sendFailure("unable to start ook", output);
-    return 200;
-  }
-  this->receiving = true;
-  this->sendSuccess(output);
-  return 200;
-}
-
-int ApiHandler::handleOokTx(String &body, String *output) {
-  if (body.isEmpty()) {
-    this->sendFailure("request is empty", output);
-    return 200;
-  }
-  if (lora->isReceivingData()) {
-    this->sendFailure("cannot transmit during receive", output);
-    return 200;
-  }
-  StaticJsonDocument<1024> doc;
-  DeserializationError error = deserializeJson(doc, body);
-  if (error) {
-    this->sendFailure("unable to parse tx request", output);
-    return 200;
-  }
-  FskState req;
-  int code = readFskRequest(doc, &req);
-  if (code != 0) {
-    this->sendFailure("invalid hexadecimal string in the syncWord field", output);
-    return 200;
-  }
-  const char *data = doc["data"];
-  uint8_t *binaryData = NULL;
-  size_t binaryDataLength = 0;
-  code = convertStringToHex(data, &binaryData, &binaryDataLength);
-  if (code != 0) {
-    if (req.syncWord != NULL) {
-      free(req.syncWord);
-    }
-    this->sendFailure("invalid hexadecimal string in the data field", output);
-    return 200;
-  }
-  log_i("tx data: %s", data);
-  code = lora->ookTx(binaryData, binaryDataLength, &req);
-  free(binaryData);
-  if (req.syncWord != NULL) {
-    free(req.syncWord);
-  }
-  if (code != 0) {
-    this->sendFailure("unable to transmit", output);
-    return 200;
-  }
-  this->sendSuccess(output);
-  return 200;
 }
 
 void ApiHandler::loop() {

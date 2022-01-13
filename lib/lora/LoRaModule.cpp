@@ -38,8 +38,6 @@ int16_t LoRaModule::init(Chip *chip) {
   this->type = chip->getType();
   this->fsk.syncWord = NULL;
   this->fsk.syncWordLength = 0;
-  this->ook.syncWord = NULL;
-  this->ook.syncWordLength = 0;
   return ERR_NONE;
 }
 
@@ -63,12 +61,7 @@ void LoRaModule::reset() {
     free(this->fsk.syncWord);
     this->fsk.syncWord = NULL;
   }
-  if (this->ook.syncWord != NULL) {
-    free(this->ook.syncWord);
-    this->ook.syncWord = NULL;
-  }
   this->loraInitialized = false;
-  this->ookInitialized = false;
 }
 
 // this function is called when a complete packet
@@ -104,18 +97,6 @@ int16_t LoRaModule::startFskRx(FskState *request) {
   int16_t status = syncFskModemState(request);
   if (status != ERR_NONE) {
     log_e("unable to init rx fsk: %d", status);
-    return status;
-  }
-  return startReceive();
-}
-
-int16_t LoRaModule::startOokRx(FskState *request) {
-  if (ookInitialized) {
-    request->power = ook.power;
-  }
-  int16_t status = syncOokModemState(request);
-  if (status != ERR_NONE) {
-    log_e("unable to init rx ook: %d", status);
     return status;
   }
   return startReceive();
@@ -255,10 +236,10 @@ int16_t LoRaModule::syncFskModemState(FskState *request) {
       fskInitialized = false;
       RADIOLIB_ASSERT(status);
 
-      status = sx->variablePacketLengthMode(SX127X_MAX_PACKET_LENGTH_FSK);
+      status = sx->setOOK(request->ook);
       RADIOLIB_ASSERT(status);
 
-      status = sx->setOOK(false);
+      status = sx->variablePacketLengthMode(SX127X_MAX_PACKET_LENGTH_FSK);
       RADIOLIB_ASSERT(status);
     }
 
@@ -307,10 +288,10 @@ int16_t LoRaModule::syncFskModemState(FskState *request) {
       fskInitialized = false;
       RADIOLIB_ASSERT(status);
 
-      status = sx->variablePacketLengthMode(SX127X_MAX_PACKET_LENGTH_FSK);
+      status = sx->setOOK(request->ook);
       RADIOLIB_ASSERT(status);
 
-      status = sx->setOOK(false);
+      status = sx->variablePacketLengthMode(SX127X_MAX_PACKET_LENGTH_FSK);
       RADIOLIB_ASSERT(status);
     }
 
@@ -365,129 +346,6 @@ int16_t LoRaModule::syncFskModemState(FskState *request) {
 
   fskInitialized = true;
   activeModem = ModemType::FSK;
-  return ERR_NONE;
-}
-
-int16_t LoRaModule::syncOokModemState(FskState *request) {
-  int16_t status;
-  if (isSX1278()) {
-    SX1278 *sx = (SX1278 *)this->phys;
-    if (activeModem != ModemType::OOK) {
-      status = sx->beginFSK();
-      // modem changed. force update of all parameters
-      ookInitialized = false;
-      RADIOLIB_ASSERT(status);
-
-      status = sx->variablePacketLengthMode(SX127X_MAX_PACKET_LENGTH_FSK);
-      RADIOLIB_ASSERT(status);
-
-      status = sx->setOOK(true);
-      RADIOLIB_ASSERT(status);
-    }
-
-    if (!ookInitialized || ook.br != request->br) {
-      status = sx->setBitRate(request->br);
-      RADIOLIB_ASSERT(status);
-    }
-    if (!ookInitialized || ook.freq != request->freq) {
-      status = sx->setFrequency(request->freq);
-      RADIOLIB_ASSERT(status);
-    }
-    if (!ookInitialized || ook.freqDev != request->freqDev) {
-      status = sx->setFrequencyDeviation(request->freqDev);
-      RADIOLIB_ASSERT(status);
-    }
-    if (!ookInitialized || ook.gain != request->gain) {
-      status = sx->setGain(request->gain);
-      RADIOLIB_ASSERT(status);
-    }
-    if (!ookInitialized || ook.power != request->power) {
-      status = sx->setOutputPower(request->power);
-      RADIOLIB_ASSERT(status);
-    }
-    if (!ookInitialized || ook.preambleLength != request->preambleLength) {
-      status = sx->setPreambleLength(request->preambleLength);
-      RADIOLIB_ASSERT(status);
-    }
-    if (!ookInitialized || ook.rxBw != request->rxBw) {
-      status = sx->setRxBandwidth(request->rxBw);
-      RADIOLIB_ASSERT(status);
-    }
-    if (!ookInitialized || ook.sh != request->sh) {
-      status = sx->setDataShapingOOK(request->sh);
-      RADIOLIB_ASSERT(status);
-    }
-    if (!ookInitialized || checkIfSyncwordEqual(&ook, request)) {
-      status = sx->setSyncWord(request->syncWord, request->syncWordLength);
-      RADIOLIB_ASSERT(status);
-    }
-
-  } else if (isSX1276()) {
-    SX1276 *sx = (SX1276 *)phys;
-    if (activeModem != ModemType::OOK) {
-      status = sx->beginFSK();
-      // modem changed. force update of all parameters
-      ookInitialized = false;
-      RADIOLIB_ASSERT(status);
-
-      status = sx->variablePacketLengthMode(SX127X_MAX_PACKET_LENGTH_FSK);
-      RADIOLIB_ASSERT(status);
-
-      status = sx->setOOK(true);
-      RADIOLIB_ASSERT(status);
-    }
-
-    if (!ookInitialized || ook.br != request->br) {
-      status = sx->setBitRate(request->br);
-      RADIOLIB_ASSERT(status);
-    }
-    if (!ookInitialized || ook.freq != request->freq) {
-      status = sx->setFrequency(request->freq);
-      RADIOLIB_ASSERT(status);
-    }
-    if (!ookInitialized || ook.freqDev != request->freqDev) {
-      status = sx->setFrequencyDeviation(request->freqDev);
-      RADIOLIB_ASSERT(status);
-    }
-    if (!ookInitialized || ook.gain != request->gain) {
-      status = sx->setGain(request->gain);
-      RADIOLIB_ASSERT(status);
-    }
-    if (!ookInitialized || ook.power != request->power) {
-      status = sx->setOutputPower(request->power);
-      RADIOLIB_ASSERT(status);
-    }
-    if (!ookInitialized || ook.preambleLength != request->preambleLength) {
-      status = sx->setPreambleLength(request->preambleLength);
-      RADIOLIB_ASSERT(status);
-    }
-    if (!ookInitialized || ook.rxBw != request->rxBw) {
-      status = sx->setRxBandwidth(request->rxBw);
-      RADIOLIB_ASSERT(status);
-    }
-    if (!ookInitialized || ook.sh != request->sh) {
-      status = sx->setDataShapingOOK(request->sh);
-      RADIOLIB_ASSERT(status);
-    }
-    if (!ookInitialized || checkIfSyncwordEqual(&ook, request)) {
-      status = sx->setSyncWord(request->syncWord, request->syncWordLength);
-      RADIOLIB_ASSERT(status);
-    }
-  } else {
-    return ERR_CHIP_NOT_FOUND;
-  }
-  if (ook.syncWord != NULL) {
-    free(ook.syncWord);
-  }
-  memcpy(&ook, request, sizeof(FskState));
-  ook.syncWord = (uint8_t *)malloc(sizeof(uint8_t) * request->syncWordLength);
-  if (ook.syncWord == NULL) {
-    return ERR_UNKNOWN;
-  }
-  memcpy(ook.syncWord, request->syncWord, sizeof(uint8_t) * request->syncWordLength);
-
-  ookInitialized = true;
-  activeModem = ModemType::OOK;
   return ERR_NONE;
 }
 
@@ -627,18 +485,6 @@ int16_t LoRaModule::fskTx(uint8_t *data, size_t dataLength, FskState *request) {
   int16_t status = syncFskModemState(request);
   if (status != ERR_NONE) {
     log_e("unable to init tx fsk: %d", status);
-    return status;
-  }
-  return transmit(data, dataLength);
-}
-
-int16_t LoRaModule::ookTx(uint8_t *data, size_t dataLength, FskState *request) {
-  if (ookInitialized) {
-    request->gain = ook.gain;
-  }
-  int16_t status = syncOokModemState(request);
-  if (status != ERR_NONE) {
-    log_e("unable to init tx ook: %d", status);
     return status;
   }
   return transmit(data, dataLength);

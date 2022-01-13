@@ -14,8 +14,7 @@ enum LdroType { LDRO_AUTO = 0,
                 LDRO_OFF = 2 };
 enum ModemType { NONE = 0,
                  LORA = 1,
-                 FSK = 2,
-                 OOK = 3 };
+                 FSK = 2 };
 
 struct LoraState {
   float freq;
@@ -41,6 +40,7 @@ struct FskState {
   size_t syncWordLength;
   int8_t power;
   uint8_t gain;
+  bool ook;
 };
 
 class LoRaModule {
@@ -50,11 +50,9 @@ class LoRaModule {
   // virtual functions used by Mock overrides in tests
   virtual int16_t startLoraRx(LoraState *request);
   virtual int16_t startFskRx(FskState *request);
-  virtual int16_t startOokRx(FskState *request);
 
   virtual int16_t loraTx(uint8_t *data, size_t dataLength, LoraState *request);
   virtual int16_t fskTx(uint8_t *data, size_t dataLength, FskState *request);
-  virtual int16_t ookTx(uint8_t *data, size_t dataLength, FskState *request);
 
   virtual LoRaFrame *loop();
   virtual void stopRx();
@@ -76,9 +74,6 @@ class LoRaModule {
   FskState fsk;
   bool fskInitialized = false;
 
-  FskState ook;
-  bool ookInitialized = false;
-
   ModemType activeModem = ModemType::NONE;
 
   std::function<void()> rxStartedCallback = NULL;
@@ -89,7 +84,6 @@ class LoRaModule {
 
   int16_t syncLoraModemState(LoraState *request);
   int16_t syncFskModemState(FskState *request);
-  int16_t syncOokModemState(FskState *request);
 
   int16_t startReceive();
   int16_t transmit(uint8_t* data, size_t len);

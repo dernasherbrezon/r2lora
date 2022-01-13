@@ -18,11 +18,8 @@ class ApiHandler {
   int handlePull(String &body, String *output);
   int handleTx(String &body, String *output);
 
-  int handleFskStart(String &body, String *output);
-  int handleFskTx(String &body, String *output);
-
-  int handleOokStart(String &body, String *output);
-  int handleOokTx(String &body, String *output);
+  int handleFskStart(bool ook, String &body, String *output);
+  int handleFskTx(bool ook, String &body, String *output);
 
  private:
   void sendFailure(const char *message, String *output);

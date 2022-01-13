@@ -236,10 +236,12 @@ int16_t LoRaModule::syncFskModemState(FskState *request) {
       fskInitialized = false;
       RADIOLIB_ASSERT(status);
 
-      status = sx->setOOK(request->ook);
-      RADIOLIB_ASSERT(status);
-
       status = sx->variablePacketLengthMode(SX127X_MAX_PACKET_LENGTH_FSK);
+      RADIOLIB_ASSERT(status);
+    }
+
+    if (!fskInitialized || fsk.ook != request->ook) {
+      status = sx->setOOK(request->ook);
       RADIOLIB_ASSERT(status);
     }
 
@@ -272,7 +274,7 @@ int16_t LoRaModule::syncFskModemState(FskState *request) {
       RADIOLIB_ASSERT(status);
     }
     if (!fskInitialized || fsk.sh != request->sh) {
-      if (fsk.ook) {
+      if (request->ook) {
         status = sx->setDataShapingOOK(request->sh);
       } else {
         status = sx->setDataShaping(request->sh);
@@ -292,10 +294,12 @@ int16_t LoRaModule::syncFskModemState(FskState *request) {
       fskInitialized = false;
       RADIOLIB_ASSERT(status);
 
-      status = sx->setOOK(request->ook);
-      RADIOLIB_ASSERT(status);
-
       status = sx->variablePacketLengthMode(SX127X_MAX_PACKET_LENGTH_FSK);
+      RADIOLIB_ASSERT(status);
+    }
+
+    if (!fskInitialized || fsk.ook != request->ook) {
+      status = sx->setOOK(request->ook);
       RADIOLIB_ASSERT(status);
     }
 
@@ -328,7 +332,7 @@ int16_t LoRaModule::syncFskModemState(FskState *request) {
       RADIOLIB_ASSERT(status);
     }
     if (!fskInitialized || fsk.sh != request->sh) {
-      if (fsk.ook) {
+      if (request->ook) {
         status = sx->setDataShapingOOK(request->sh);
       } else {
         status = sx->setDataShaping(request->sh);

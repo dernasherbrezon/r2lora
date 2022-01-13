@@ -255,6 +255,9 @@ int16_t LoRaModule::syncFskModemState(FskState *request) {
       fskInitialized = false;
       RADIOLIB_ASSERT(status);
 
+      status = sx->variablePacketLengthMode(SX127X_MAX_PACKET_LENGTH_FSK);
+      RADIOLIB_ASSERT(status);
+
       status = sx->setOOK(false);
       RADIOLIB_ASSERT(status);
     }
@@ -302,6 +305,9 @@ int16_t LoRaModule::syncFskModemState(FskState *request) {
       status = sx->beginFSK();
       // modem changed. force update of all parameters
       fskInitialized = false;
+      RADIOLIB_ASSERT(status);
+
+      status = sx->variablePacketLengthMode(SX127X_MAX_PACKET_LENGTH_FSK);
       RADIOLIB_ASSERT(status);
 
       status = sx->setOOK(false);
@@ -372,6 +378,9 @@ int16_t LoRaModule::syncOokModemState(FskState *request) {
       ookInitialized = false;
       RADIOLIB_ASSERT(status);
 
+      status = sx->variablePacketLengthMode(SX127X_MAX_PACKET_LENGTH_FSK);
+      RADIOLIB_ASSERT(status);
+
       status = sx->setOOK(true);
       RADIOLIB_ASSERT(status);
     }
@@ -419,6 +428,9 @@ int16_t LoRaModule::syncOokModemState(FskState *request) {
       status = sx->beginFSK();
       // modem changed. force update of all parameters
       ookInitialized = false;
+      RADIOLIB_ASSERT(status);
+
+      status = sx->variablePacketLengthMode(SX127X_MAX_PACKET_LENGTH_FSK);
       RADIOLIB_ASSERT(status);
 
       status = sx->setOOK(true);

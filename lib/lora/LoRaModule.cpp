@@ -250,7 +250,7 @@ int16_t LoRaModule::syncFskModemState(FskState *request) {
   if (isSX1278()) {
     SX1278 *sx = (SX1278 *)this->phys;
     if (activeModem != ModemType::FSK) {
-      status = sx->begin();
+      status = sx->beginFSK();
       // modem changed. force update of all parameters
       fskInitialized = false;
       RADIOLIB_ASSERT(status);
@@ -299,7 +299,7 @@ int16_t LoRaModule::syncFskModemState(FskState *request) {
   } else if (isSX1276()) {
     SX1276 *sx = (SX1276 *)phys;
     if (activeModem != ModemType::FSK) {
-      status = sx->begin();
+      status = sx->beginFSK();
       // modem changed. force update of all parameters
       fskInitialized = false;
       RADIOLIB_ASSERT(status);
@@ -367,7 +367,7 @@ int16_t LoRaModule::syncOokModemState(FskState *request) {
   if (isSX1278()) {
     SX1278 *sx = (SX1278 *)this->phys;
     if (activeModem != ModemType::OOK) {
-      status = sx->begin();
+      status = sx->beginFSK();
       // modem changed. force update of all parameters
       ookInitialized = false;
       RADIOLIB_ASSERT(status);
@@ -416,7 +416,7 @@ int16_t LoRaModule::syncOokModemState(FskState *request) {
   } else if (isSX1276()) {
     SX1276 *sx = (SX1276 *)phys;
     if (activeModem != ModemType::OOK) {
-      status = sx->begin();
+      status = sx->beginFSK();
       // modem changed. force update of all parameters
       ookInitialized = false;
       RADIOLIB_ASSERT(status);

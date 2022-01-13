@@ -23,10 +23,10 @@ ApiHandler::ApiHandler(WebServer *web, LoRaModule *lora, Configurator *config) {
   this->web->addHandler(new JsonHandler(txFunc, "/lora/tx/send", HTTP_POST, config));
 
   std::function<int(String &, String *)> startFskFunc = std::bind(&ApiHandler::handleFskStart, this, std::placeholders::_1, std::placeholders::_2);
-  this->web->addHandler(new JsonHandler(startFunc, "/fsk/rx/start", HTTP_POST, config));
+  this->web->addHandler(new JsonHandler(startFskFunc, "/fsk/rx/start", HTTP_POST, config));
 
   std::function<int(String &, String *)> txFskFunc = std::bind(&ApiHandler::handleFskTx, this, std::placeholders::_1, std::placeholders::_2);
-  this->web->addHandler(new JsonHandler(txFunc, "/fsk/tx/send", HTTP_POST, config));
+  this->web->addHandler(new JsonHandler(txFskFunc, "/fsk/tx/send", HTTP_POST, config));
 
   log_i("api handler was initialized");
 }
@@ -99,6 +99,7 @@ int ApiHandler::handleFskTx(String &body, String *output) {
   req.br = doc["br"];       // = (125.0F)
   req.freqDev = doc["freqDev"];  // = (uint8_t)9U
   req.rxBw = doc["rxBw"];     // = (uint8_t)7U
+  // FIXME syncword length is not needed
   if (doc.containsKey("syncWordLength")) {
     req.syncWordLength = doc["syncWordLength"];
     const char *data = doc["syncWord"];

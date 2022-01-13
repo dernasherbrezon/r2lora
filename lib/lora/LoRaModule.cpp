@@ -272,7 +272,11 @@ int16_t LoRaModule::syncFskModemState(FskState *request) {
       RADIOLIB_ASSERT(status);
     }
     if (!fskInitialized || fsk.sh != request->sh) {
-      status = sx->setDataShaping(request->sh);
+      if (fsk.ook) {
+        status = sx->setDataShapingOOK(request->sh);
+      } else {
+        status = sx->setDataShaping(request->sh);
+      }
       RADIOLIB_ASSERT(status);
     }
     if (!fskInitialized || checkIfSyncwordEqual(&fsk, request)) {
@@ -324,7 +328,11 @@ int16_t LoRaModule::syncFskModemState(FskState *request) {
       RADIOLIB_ASSERT(status);
     }
     if (!fskInitialized || fsk.sh != request->sh) {
-      status = sx->setDataShaping(request->sh);
+      if (fsk.ook) {
+        status = sx->setDataShapingOOK(request->sh);
+      } else {
+        status = sx->setDataShaping(request->sh);
+      }
       RADIOLIB_ASSERT(status);
     }
     if (!fskInitialized || checkIfSyncwordEqual(&fsk, request)) {

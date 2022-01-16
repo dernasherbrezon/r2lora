@@ -10,7 +10,7 @@ r2lora exposes LoRa module functionality via REST API. This API can be accessed 
 
 # Features
 
- * [REST API](wiki/REST-API)
+ * [REST API](../../wiki/REST-API)
    * Lora RX start
    * Lora TX
    * FSK RX start

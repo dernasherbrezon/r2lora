@@ -41,6 +41,10 @@ int ApiHandler::handleFskStart(bool ook, String &body, String *output) {
     this->sendFailure("request is empty", output);
     return 200;
   }
+  if (this->receiving) {
+    this->sendFailure("already started", output);
+    return 200;
+  }
   StaticJsonDocument<256> doc;
   DeserializationError error = deserializeJson(doc, body);
   if (error) {
@@ -118,6 +122,10 @@ int ApiHandler::handleFskTx(bool ook, String &body, String *output) {
 int ApiHandler::handleStart(String &body, String *output) {
   if (body.isEmpty()) {
     this->sendFailure("request is empty", output);
+    return 200;
+  }
+  if (this->receiving) {
+    this->sendFailure("already started", output);
     return 200;
   }
   StaticJsonDocument<256> doc;

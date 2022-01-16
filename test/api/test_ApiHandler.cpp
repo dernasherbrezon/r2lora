@@ -65,6 +65,7 @@ void test_double_start(void) {
   int code = handler.handleStart(VALID_RX_REQUEST, &output);
   TEST_ASSERT_EQUAL_INT(200, code);
   assertStatus(&output, "SUCCESS");
+  output.clear();
   code = handler.handleStart(VALID_RX_REQUEST, &output);
   TEST_ASSERT_EQUAL_INT(200, code);
   assertStatus(&output, "FAILURE");

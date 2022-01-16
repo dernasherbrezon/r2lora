@@ -3,10 +3,11 @@
 
 void test_start_loop_stop(void) {
   LoRaModule module;
-  int code = module.init(&Chip("SX1276 - 868/915Mhz", ChipType::TYPE_SX1276));
+  Chip chip("SX1278 - 433/470Mhz", ChipType::TYPE_SX1278);
+  int code = module.init(&chip);
   TEST_ASSERT_EQUAL(0, code);
   LoraState req;
-  req.freq = 915.0;
+  req.freq = 433.0;
   req.bw = 125.0;
   req.sf = (uint8_t)9U;
   req.cr = (uint8_t)7U;
@@ -14,6 +15,7 @@ void test_start_loop_stop(void) {
   req.preambleLength = (uint16_t)8U;
   req.gain = (uint8_t)0U;
   req.ldro = LdroType::LDRO_AUTO;
+  req.power = 10;
   code = module.startLoraRx(&req);
   TEST_ASSERT_EQUAL(0, code);
   TEST_ASSERT_EQUAL(true, module.isReceivingData());

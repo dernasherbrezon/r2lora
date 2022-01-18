@@ -18,6 +18,7 @@ Configurator::Configurator(WebServer *webServer) {
   allCustomParameters->addItem(this->chipType);
   allCustomParameters->addItem(&this->autoUpdateParam);
   allCustomParameters->addItem(&this->ntpServerParameter);
+  allCustomParameters->addItem(&this->disableDisplayParam);
   this->conf->addParameterGroup(this->allCustomParameters);
 
   // c++ magic. bind class-based method to function
@@ -77,6 +78,10 @@ const char *Configurator::getDeviceName() {
 }
 bool Configurator::isAutoUpdate() {
   return this->autoUpdateParam.isChecked();
+}
+
+bool Configurator::isDisableDisplay() {
+  return this->disableDisplayParam.isChecked();
 }
 
 Chip *Configurator::getChip() {

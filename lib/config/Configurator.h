@@ -25,6 +25,7 @@ class Configurator {
   const char *getDeviceName();
   bool isAutoUpdate();
   bool isConfigured();
+  bool isDisableDisplay();
 
  private:
   DNSServer *dnsServer = NULL;
@@ -37,9 +38,11 @@ class Configurator {
   char chipIndex[STRING_LEN] = "0";
   char ntpServer[STRING_LEN] = "";
   char autoUpdate[STRING_LEN] = "selected";
+  char disableDisplay[STRING_LEN] = "selected";
   bool configured = false;
   IotWebConfTextParameter ntpServerParameter = IotWebConfTextParameter("NTP server", "ntpServer", this->ntpServer, STRING_LEN, "pool.ntp.org");
   IotWebConfCheckboxParameter autoUpdateParam = IotWebConfCheckboxParameter("Auto update", "autoUpdate", this->autoUpdate, STRING_LEN, true);
+  IotWebConfCheckboxParameter disableDisplayParam = IotWebConfCheckboxParameter("Disable display", "disableDisplay", this->disableDisplay, STRING_LEN, false);
   bool formValidator(iotwebconf::WebRequestWrapper *web);
 };
 

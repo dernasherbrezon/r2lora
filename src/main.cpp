@@ -116,6 +116,7 @@ void setup() {
     } else {
       chipInitializationFailed = false;
     }
+    display->setEnabled(!conf->isDisableDisplay());
     display->setStationName(conf->getDeviceName());
     display->setStatus(getStatus());
     display->update();

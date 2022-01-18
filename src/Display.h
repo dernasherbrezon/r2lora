@@ -14,6 +14,7 @@ class Display {
   void setIpAddress(String ipAddress);
   void setProgress(uint8_t progress);
   void update();
+  void setEnabled(bool enabled);
 
  private:
   const char *status = NULL;
@@ -21,6 +22,7 @@ class Display {
   String ipAddress;
   uint8_t progress = 0;
   SSD1306Wire *display = NULL;
+  bool enabled = true;
 };
 
 #endif

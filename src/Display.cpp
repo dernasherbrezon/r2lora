@@ -43,7 +43,7 @@ void Display::init() {
 }
 
 void Display::update() {
-  if (this->display == NULL) {
+  if (this->display == NULL || !this->enabled) {
     return;
   }
   this->display->clear();
@@ -81,6 +81,13 @@ void Display::setStationName(const char *stationName) {
 }
 void Display::setIpAddress(String ipAddress) {
   this->ipAddress = ipAddress;
+}
+
+void Display::setEnabled(bool enabled) {
+  if (!enabled) {
+    this->display->resetDisplay();
+  }
+  this->enabled = enabled;
 }
 
 Display::~Display() {

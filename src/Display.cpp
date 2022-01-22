@@ -33,6 +33,12 @@ void Display::init() {
     return;
   }
   this->display = new SSD1306Wire(0x3c, PIN_OLED_SDA, PIN_OLED_SCL);
+#ifdef PIN_OLED_RST
+  pinMode(PIN_OLED_RST, OUTPUT);
+  digitalWrite(PIN_OLED_RST, LOW);
+  delay(50);
+  digitalWrite(PIN_OLED_RST, HIGH);
+#endif
   if (!this->display->init()) {
     log_e("unable initialize display. continue without display");
     delete this->display;

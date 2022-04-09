@@ -127,7 +127,7 @@ void setup() {
   conf->setOnWifiConnectedCallback([] {
     log_i("wifi connected");
     if (conf->isAutoUpdate()) {
-      updater->init(FIRMWARE_VERSION, "apt.r2server.ru", 80, "/fota/r2lora.json", 24 * 60 * 60 * 1000, ARDUINO_VARIANT);  // update once a day
+      updater->init(FIRMWARE_VERSION, "apt.leosatdata.com", 80, "/fota/r2lora.json", 24 * 60 * 60 * 1000, ARDUINO_VARIANT);  // update once a day
     }
     display->setIpAddress(WiFi.localIP().toString());
     display->setStatus(getStatus());

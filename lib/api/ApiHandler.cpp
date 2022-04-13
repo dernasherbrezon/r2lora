@@ -77,7 +77,7 @@ int ApiHandler::handleFskTx(bool ook, String &body, String *output) {
     this->sendFailure("FAILURE", "request is empty", output);
     return 200;
   }
-  if (this->receiving) {
+  if (lora->isReceivingData()) {
     this->sendFailure("RECEIVING", "cannot transmit during receive", output);
     return 200;
   }
@@ -152,7 +152,7 @@ int ApiHandler::handleTx(String &body, String *output) {
     this->sendFailure("FAILURE", "request is empty", output);
     return 200;
   }
-  if (this->receiving) {
+  if (lora->isReceivingData()) {
     this->sendFailure("RECEIVING", "cannot transmit during receive", output);
     return 200;
   }

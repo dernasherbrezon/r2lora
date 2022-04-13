@@ -38,24 +38,24 @@ ApiHandler::ApiHandler(WebServer *web, LoRaModule *lora, Configurator *config) {
 
 int ApiHandler::handleFskStart(bool ook, String &body, String *output) {
   if (body.isEmpty()) {
-    this->sendFailure("request is empty", output);
+    this->sendFailure("FAILURE", "request is empty", output);
     return 200;
   }
   if (this->receiving) {
-    this->sendFailure("already started", output);
+    this->sendFailure("RECEIVING", "already started", output);
     return 200;
   }
   StaticJsonDocument<256> doc;
   DeserializationError error = deserializeJson(doc, body);
   if (error) {
-    this->sendFailure("unable to parse request", output);
+    this->sendFailure("FAILURE", "unable to parse request", output);
     return 200;
   }
   FskState req;
   req.ook = ook;
   int code = readFskRequest(doc, &req);
   if (code != 0) {
-    this->sendFailure("invalid hexadecimal string in the syncWord field", output);
+    this->sendFailure("FAILURE", "invalid hexadecimal string in the syncWord field", output);
     return 200;
   }
   log_i("received fsk rx request on: %fMhz", req.freq);
@@ -64,7 +64,7 @@ int ApiHandler::handleFskStart(bool ook, String &body, String *output) {
     free(req.syncWord);
   }
   if (code != 0) {
-    this->sendFailure("unable to start fsk", output);
+    this->sendFailure("FAILURE", "unable to start fsk", output);
     return 200;
   }
   this->receiving = true;
@@ -74,24 +74,24 @@ int ApiHandler::handleFskStart(bool ook, String &body, String *output) {
 
 int ApiHandler::handleFskTx(bool ook, String &body, String *output) {
   if (body.isEmpty()) {
-    this->sendFailure("request is empty", output);
+    this->sendFailure("FAILURE", "request is empty", output);
     return 200;
   }
-  if (lora->isReceivingData()) {
-    this->sendFailure("cannot transmit during receive", output);
+  if (this->receiving) {
+    this->sendFailure("RECEIVING", "cannot transmit during receive", output);
     return 200;
   }
   StaticJsonDocument<1024> doc;
   DeserializationError error = deserializeJson(doc, body);
   if (error) {
-    this->sendFailure("unable to parse tx request", output);
+    this->sendFailure("FAILURE", "unable to parse tx request", output);
     return 200;
   }
   FskState req;
   req.ook = ook;
   int code = readFskRequest(doc, &req);
   if (code != 0) {
-    this->sendFailure("invalid hexadecimal string in the syncWord field", output);
+    this->sendFailure("FAILURE", "invalid hexadecimal string in the syncWord field", output);
     return 200;
   }
   const char *data = doc["data"];
@@ -102,7 +102,7 @@ int ApiHandler::handleFskTx(bool ook, String &body, String *output) {
     if (req.syncWord != NULL) {
       free(req.syncWord);
     }
-    this->sendFailure("invalid hexadecimal string in the data field", output);
+    this->sendFailure("FAILURE", "invalid hexadecimal string in the data field", output);
     return 200;
   }
   log_i("tx data: %s", data);
@@ -112,7 +112,7 @@ int ApiHandler::handleFskTx(bool ook, String &body, String *output) {
     free(req.syncWord);
   }
   if (code != 0) {
-    this->sendFailure("unable to transmit", output);
+    this->sendFailure("FAILURE", "unable to transmit", output);
     return 200;
   }
   this->sendSuccess(output);
@@ -121,17 +121,17 @@ int ApiHandler::handleFskTx(bool ook, String &body, String *output) {
 
 int ApiHandler::handleStart(String &body, String *output) {
   if (body.isEmpty()) {
-    this->sendFailure("request is empty", output);
+    this->sendFailure("FAILURE", "request is empty", output);
     return 200;
   }
   if (this->receiving) {
-    this->sendFailure("already started", output);
+    this->sendFailure("RECEIVING", "already started", output);
     return 200;
   }
   StaticJsonDocument<256> doc;
   DeserializationError error = deserializeJson(doc, body);
   if (error) {
-    this->sendFailure("unable to parse request", output);
+    this->sendFailure("FAILURE", "unable to parse request", output);
     return 200;
   }
   LoraState req;
@@ -139,7 +139,7 @@ int ApiHandler::handleStart(String &body, String *output) {
   log_i("received lora rx request on: %fMhz", req.freq);
   int code = lora->startLoraRx(&req);
   if (code != 0) {
-    this->sendFailure("unable to start lora", output);
+    this->sendFailure("FAILURE", "unable to start lora", output);
     return 200;
   }
   this->receiving = true;
@@ -149,17 +149,17 @@ int ApiHandler::handleStart(String &body, String *output) {
 
 int ApiHandler::handleTx(String &body, String *output) {
   if (body.isEmpty()) {
-    this->sendFailure("request is empty", output);
+    this->sendFailure("FAILURE", "request is empty", output);
     return 200;
   }
-  if (lora->isReceivingData()) {
-    this->sendFailure("cannot transmit during receive", output);
+  if (this->receiving) {
+    this->sendFailure("RECEIVING", "cannot transmit during receive", output);
     return 200;
   }
   StaticJsonDocument<1024> doc;
   DeserializationError error = deserializeJson(doc, body);
   if (error) {
-    this->sendFailure("unable to parse tx request", output);
+    this->sendFailure("FAILURE", "unable to parse tx request", output);
     return 200;
   }
   LoraState req;
@@ -169,14 +169,14 @@ int ApiHandler::handleTx(String &body, String *output) {
   size_t binaryDataLength = 0;
   int code = convertStringToHex(data, &binaryData, &binaryDataLength);
   if (code != 0) {
-    this->sendFailure("invalid hexadecimal string in the data field", output);
+    this->sendFailure("FAILURE", "invalid hexadecimal string in the data field", output);
     return 200;
   }
   log_i("tx data: %s", data);
   code = lora->loraTx(binaryData, binaryDataLength, &req);
   free(binaryData);
   if (code != 0) {
-    this->sendFailure("unable to transmit", output);
+    this->sendFailure("FAILURE", "unable to transmit", output);
     return 200;
   }
   this->sendSuccess(output);
@@ -193,7 +193,7 @@ int ApiHandler::handlePull(String &body, String *output) {
     char *data = NULL;
     int code = convertHexToString(curFrame->getData(), curFrame->getDataLength(), &data);
     if (code != 0) {
-      this->sendFailure("unable to serialize data", output);
+      this->sendFailure("FAILURE", "unable to serialize data", output);
       return 200;
     }
     obj["data"] = data;
@@ -284,9 +284,9 @@ int ApiHandler::readFskRequest(const JsonDocument &doc, FskState *req) {
   return 0;
 }
 
-void ApiHandler::sendFailure(const char *message, String *output) {
+void ApiHandler::sendFailure(const char *status, const char *message, String *output) {
   StaticJsonDocument<512> json;
-  json["status"] = "FAILURE";
+  json["status"] = status;
   json["failureMessage"] = message;
   serializeJson(json, *output);
   log_i("failure: %s", message);

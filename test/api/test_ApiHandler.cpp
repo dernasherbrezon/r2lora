@@ -68,7 +68,7 @@ void test_double_start(void) {
   output.clear();
   code = handler.handleStart(VALID_RX_REQUEST, &output);
   TEST_ASSERT_EQUAL_INT(200, code);
-  assertStatus(&output, "FAILURE");
+  assertStatus(&output, "RECEIVING");
 }
 
 void test_no_request(void) {
@@ -156,7 +156,7 @@ void test_cant_tx_during_receive(void) {
   String output;
   int code = handler.handleTx(VALID_TX_REQUEST, &output);
   TEST_ASSERT_EQUAL_INT(200, code);
-  assertStatus(&output, "FAILURE");
+  assertStatus(&output, "RECEIVING");
 }
 
 void test_invalid_tx_request(void) {

@@ -22,7 +22,7 @@ class ApiHandler {
   int handleFskTx(bool ook, String &body, String *output);
 
  private:
-  void sendFailure(const char *message, String *output);
+  void sendFailure(const char *status, const char *message, String *output);
   void sendSuccess(String *output);
 
   int readLoraRequest(const JsonDocument &doc, LoraState *lora);

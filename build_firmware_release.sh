@@ -5,7 +5,7 @@ pio run
 mkdir -p target
 
 FILE_INDEX="./target/r2lora.json"
-VERSION="1.1"
+VERSION="1.2"
 
 rm -f ${FILE_INDEX}
 
@@ -26,7 +26,6 @@ do
     echo "\"size\": ${size}," >> ${FILE_INDEX}
     echo "\"md5Checksum\": \"${md5}\"" >> ${FILE_INDEX}
     echo "}," >> ${FILE_INDEX}
-    cp ${file} ${dstFilename}
 done
 
 echo "]" >> ${FILE_INDEX}

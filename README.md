@@ -1,3 +1,5 @@
+Note: This repository is archived not supported anymore. Please use [lora-at](https://github.com/dernasherbrezon/lora-at) instead.
+
 # About
 
 Expose LoRa modules for remote access
